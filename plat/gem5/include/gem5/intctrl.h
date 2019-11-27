@@ -1,8 +1,8 @@
 /* SPDX-License-Identifier: BSD-3-Clause */
 /*
- * Authors: Wei Chen <wei.chen@arm.com>
+ * Authors: Costin Lupu <costin.lupu@cs.pub.ro>
  *
- * Copyright (c) 2018, Arm Ltd., All rights reserved.
+ * Copyright (c) 2018, NEC Europe Ltd., NEC Corporation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -31,36 +31,8 @@
  *
  * THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
  */
-#include <uk/assert.h>
-#include <gem5/intctrl.h>
-#include <arm/cpu.h>
-#include <arm/irq.h>
-#include <gic/gic-v2.h>
-#include <config.h>
-#include <uk/essentials.h>
 
-void intctrl_init(void)
-{
-	int ret;
-
-	/* Initialize GIC from DTB */
-	ret = _dtb_init_gic(_libplat_cfg.dtb);
-	if (ret)
-		UK_CRASH("Initialize GIC from DTB failed, ret=%d\n", ret);
-
-}
-
-void intctrl_ack_irq(unsigned int irq __unused)
-{
-	//NOP
-}
-
-void intctrl_mask_irq(unsigned int irq)
-{
-	gic_disable_irq(irq);
-}
-
-void intctrl_clear_irq(unsigned int irq)
-{
-	gic_enable_irq(irq);
-}
+void intctrl_init(void);
+void intctrl_clear_irq(unsigned int irq);
+void intctrl_mask_irq(unsigned int irq);
+void intctrl_ack_irq(unsigned int irq);

@@ -34,7 +34,7 @@
  */
 #include <uk/arch/limits.h>
 #include <uk/asm.h>
-#include <kvm-arm/mm.h>
+#include <gem5-arm/mm.h>
 #include <arm/cpu_defs.h>
 /*
  * The following is the Memory Layout of AArch64 Virtual Machine
