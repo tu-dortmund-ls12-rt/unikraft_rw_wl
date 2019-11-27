@@ -23,13 +23,13 @@
 #include <sys/types.h>
 #include <uk/plat/memory.h>
 #include <uk/assert.h>
-#include <kvm/config.h>
+#include <config.h>
 
 int ukplat_memregion_count(void)
 {
 	return (9
-		+ ((_libkvmplat_cfg.initrd.len > 0) ? 1 : 0)
-		+ ((_libkvmplat_cfg.heap2.len  > 0) ? 1 : 0));
+		+ ((_libplat_cfg.initrd.len > 0) ? 1 : 0)
+		+ ((_libplat_cfg.heap2.len  > 0) ? 1 : 0));
 }
 
 int ukplat_memregion_get(int i, struct ukplat_memregion_desc *m)
@@ -114,8 +114,8 @@ int ukplat_memregion_get(int i, struct ukplat_memregion_desc *m)
 		ret = 0;
 		break;
 	case 7: /* heap */
-		m->base  = (void *) _libkvmplat_cfg.heap.start;
-		m->len   = _libkvmplat_cfg.heap.len;
+		m->base  = (void *) _libplat_cfg.heap.start;
+		m->len   = _libplat_cfg.heap.len;
 		m->flags = UKPLAT_MEMRF_ALLOCATABLE;
 #if CONFIG_UKPLAT_MEMRNAME
 		m->name  = "heap";
@@ -123,8 +123,8 @@ int ukplat_memregion_get(int i, struct ukplat_memregion_desc *m)
 		ret = 0;
 		break;
 	case 8: /* stack */
-		m->base  = (void *) _libkvmplat_cfg.bstack.start;
-		m->len   = _libkvmplat_cfg.bstack.len;
+		m->base  = (void *) _libplat_cfg.bstack.start;
+		m->len   = _libplat_cfg.bstack.len;
 		m->flags = (UKPLAT_MEMRF_RESERVED
 			    | UKPLAT_MEMRF_READABLE
 			    | UKPLAT_MEMRF_WRITABLE);
@@ -134,9 +134,9 @@ int ukplat_memregion_get(int i, struct ukplat_memregion_desc *m)
 #endif
 		break;
 	case 9: /* initrd */
-		if (_libkvmplat_cfg.initrd.len) {
-			m->base  = (void *) _libkvmplat_cfg.initrd.start;
-			m->len   = _libkvmplat_cfg.initrd.len;
+		if (_libplat_cfg.initrd.len) {
+			m->base  = (void *) _libplat_cfg.initrd.start;
+			m->len   = _libplat_cfg.initrd.len;
 			m->flags = (UKPLAT_MEMRF_INITRD |
 				    UKPLAT_MEMRF_WRITABLE);
 #if CONFIG_UKPLAT_MEMRNAME
@@ -149,9 +149,9 @@ int ukplat_memregion_get(int i, struct ukplat_memregion_desc *m)
 	case 10: /* heap2
 		 *  NOTE: heap2 could only exist if initrd was there,
 		 *  otherwise we fall through */
-		if (_libkvmplat_cfg.initrd.len && _libkvmplat_cfg.heap2.len) {
-			m->base  = (void *) _libkvmplat_cfg.heap2.start;
-			m->len   = _libkvmplat_cfg.heap2.len;
+		if (_libplat_cfg.initrd.len && _libplat_cfg.heap2.len) {
+			m->base  = (void *) _libplat_cfg.heap2.start;
+			m->len   = _libplat_cfg.heap2.len;
 			m->flags = UKPLAT_MEMRF_ALLOCATABLE;
 #if CONFIG_UKPLAT_MEMRNAME
 			m->name  = "heap";

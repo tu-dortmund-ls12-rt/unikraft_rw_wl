@@ -26,7 +26,7 @@
 /* TODO: For now this file is KVM dependent. As soon as we have more
  * Arm platforms that are using this file, we need to introduce a
  * portable way to handover the DTB entry point to common platform code */
-#include <kvm/config.h>
+#include <config.h>
 
 /* PL011 UART registers and masks*/
 /* Data register */
@@ -118,20 +118,20 @@ void _libkvmplat_init_console(void)
 
 	uk_pr_info("Serial initializing\n");
 
-	offset = fdt_node_offset_by_compatible(_libkvmplat_cfg.dtb, \
+	offset = fdt_node_offset_by_compatible(_libplat_cfg.dtb, \
 					-1, "arm,pl011");
 	if (offset < 0)
 		UK_CRASH("No console UART found!\n");
 
-	naddr = fdt_address_cells(_libkvmplat_cfg.dtb, offset);
+	naddr = fdt_address_cells(_libplat_cfg.dtb, offset);
 	if (naddr < 0 || naddr >= FDT_MAX_NCELLS)
 		UK_CRASH("Could not find proper address cells!\n");
 
-	nsize = fdt_size_cells(_libkvmplat_cfg.dtb, offset);
+	nsize = fdt_size_cells(_libplat_cfg.dtb, offset);
 	if (nsize < 0 || nsize >= FDT_MAX_NCELLS)
 		UK_CRASH("Could not find proper size cells!\n");
 
-	regs = fdt_getprop(_libkvmplat_cfg.dtb, offset, "reg", &len);
+	regs = fdt_getprop(_libplat_cfg.dtb, offset, "reg", &len);
 	if (regs == NULL || (len < (int)sizeof(fdt32_t) * (naddr + nsize)))
 		UK_CRASH("Bad 'reg' property: %p %d\n", regs, len);
 

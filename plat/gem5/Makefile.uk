@@ -59,23 +59,23 @@ LIBGEM5PLAT_SRCS-y              += $(LIBGEM5PLAT_BASE)/irq.c
 LIBGEM5PLAT_SRCS-y              += $(LIBGEM5PLAT_BASE)/io.c
 LIBGEM5PLAT_SRCS-y              += $(UK_PLAT_COMMON_BASE)/lcpu.c|common
 LIBGEM5PLAT_SRCS-y              += $(UK_PLAT_COMMON_BASE)/memory.c|common
-LIBGEM5PLAT_SRCS-y              += $(UK_PLAT_KVM_DEF_LDS)
+LIBGEM5PLAT_SRCS-y              += $(UK_PLAT_GEM5_DEF_LDS)
 
 ##
 ## OFW library definitions
 ##
-LIBKVMOFW_CINCLUDES-y         += -I$(LIBKVMPLAT_BASE)/include
-LIBKVMOFW_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
-LIBKVMOFW_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
+LIBGEM5OFW_CINCLUDES-y         += -I$(LIBGEM5PLAT_BASE)/include
+LIBGEM5OFW_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
+LIBGEM5OFW_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
 
-LIBKVMOFW_SRCS-y                  += $(UK_PLAT_DRIVERS_BASE)/ofw/fdt.c
-LIBKVMOFW_SRCS-$(CONFIG_LIBGICV2) += $(UK_PLAT_DRIVERS_BASE)/ofw/gic_fdt.c
+LIBGEM5OFW_SRCS-y                  += $(UK_PLAT_DRIVERS_BASE)/ofw/fdt.c
+LIBGEM5OFW_SRCS-$(CONFIG_LIBGICV2) += $(UK_PLAT_DRIVERS_BASE)/ofw/gic_fdt.c
 
 ##
 ## GICv2 library definitions
 ##
-LIBKVMGICV2_CINCLUDES-y         += -I$(LIBKVMPLAT_BASE)/include
-LIBKVMGICV2_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
-LIBKVMGICV2_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
+LIBGEM5GICV2_CINCLUDES-y         += -I$(LIBGEM5PLAT_BASE)/include
+LIBGEM5GICV2_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
+LIBGEM5GICV2_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
 
-LIBKVMGICV2_SRCS-y += $(UK_PLAT_DRIVERS_BASE)/gic/gic-v2.c
+LIBGEM5GICV2_SRCS-y += $(UK_PLAT_DRIVERS_BASE)/gic/gic-v2.c

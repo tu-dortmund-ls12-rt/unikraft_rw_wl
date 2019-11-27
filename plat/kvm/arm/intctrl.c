@@ -36,7 +36,7 @@
 #include <arm/cpu.h>
 #include <arm/irq.h>
 #include <gic/gic-v2.h>
-#include <kvm/config.h>
+#include <config.h>
 #include <uk/essentials.h>
 
 void intctrl_init(void)
@@ -44,7 +44,7 @@ void intctrl_init(void)
 	int ret;
 
 	/* Initialize GIC from DTB */
-	ret = _dtb_init_gic(_libkvmplat_cfg.dtb);
+	ret = _dtb_init_gic(_libplat_cfg.dtb);
 	if (ret)
 		UK_CRASH("Initialize GIC from DTB failed, ret=%d\n", ret);
 

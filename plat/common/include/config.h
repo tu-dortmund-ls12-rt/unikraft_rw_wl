@@ -35,32 +35,38 @@
  * THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
  */
 
-#ifndef __KVM_CONFIG_H__
-#define __KVM_CONFIG_H__
+/**
+ * Moved here by Christian Hakert <christian.hakert@tu-dortmund.de>
+ * However this file is only used by kvm now, it provides a common interface,
+ * which can also be used by the gem5 platform
+ */
+
+#ifndef __PLAT_CONFIG_H__
+#define __PLAT_CONFIG_H__
 
 #include <inttypes.h>
 #include <sys/types.h>
 
-struct kvmplat_config_memregion {
+struct plat_config_memregion {
 	uintptr_t start;
 	uintptr_t end;
 	size_t len;
 };
 
-struct kvmplat_config {
-	struct kvmplat_config_memregion heap;
-	struct kvmplat_config_memregion bstack;
-	struct kvmplat_config_memregion initrd;
+struct plat_config {
+	struct plat_config_memregion heap;
+	struct plat_config_memregion bstack;
+	struct plat_config_memregion initrd;
 	/* `heap2` potentially exists only if `heap` exists */
-	struct kvmplat_config_memregion heap2;
+	struct plat_config_memregion heap2;
 
 #ifdef CONFIG_ARCH_ARM_64
-	struct kvmplat_config_memregion pagetable;
+	struct plat_config_memregion pagetable;
 	void *dtb;
 #endif
 };
 
 /* Initialized and defined in setup.c */
-extern struct kvmplat_config _libkvmplat_cfg;
+extern struct plat_config _libplat_cfg;
 
-#endif /* __KVM_CONFIG_H__ */
+#endif /* __PLAT_CONFIG_H__ */
