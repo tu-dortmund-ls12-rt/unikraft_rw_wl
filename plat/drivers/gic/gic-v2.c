@@ -40,7 +40,6 @@
 #include <uk/bitops.h>
 #include <uk/asm.h>
 #include <irq.h>
-#include <kvm/irq.h>
 #include <uk/plat/lcpu.h>
 #include <arm/cpu.h>
 #include <gic/gic-v2.h>

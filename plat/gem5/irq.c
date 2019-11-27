@@ -31,7 +31,6 @@
 #include <uk/plat/lcpu.h>
 #include <cpu.h>
 #include <irq.h>
-#include <gem5/irq.h>
 #include <gem5/intctrl.h>
 #include <uk/assert.h>
 #include <errno.h>

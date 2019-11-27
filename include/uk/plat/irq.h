@@ -62,4 +62,6 @@ int ukplat_irq_register(unsigned long irq, irq_handler_func_t func, void *arg);
 }
 #endif
 
+void _ukplat_irq_handle(unsigned long irq);
+
 #endif /* __UKPLAT_IRQ_H__ */
