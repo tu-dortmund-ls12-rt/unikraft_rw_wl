@@ -36,7 +36,7 @@ static const char *appname = CONFIG_UK_NAME;
 
 smcc_psci_callfn_t smcc_psci_call;
 
-extern void _libkvmplat_newstack(uint64_t stack_start,
+extern void _libgem5plat_newstack(uint64_t stack_start,
 			void (*tramp)(void *), void *arg);
 
 static void _init_dtb(void *dtb_pointer)
@@ -198,18 +198,18 @@ enocmdl:
 	uk_pr_info("No command line found\n");
 }
 
-static void _libkvmplat_entry2(void *arg __attribute__((unused)))
+static void _libgem5plat_entry2(void *arg __attribute__((unused)))
 {
 	ukplat_entry_argp(DECONST(char *, appname),
 			  (char *)cmdline, strlen(cmdline));
 }
 
-void _libkvmplat_start(void *dtb_pointer)
+void _libgem5plat_start(void *dtb_pointer)
 {
 	_init_dtb(dtb_pointer);
-	_libkvmplat_init_console();
+	_libplat_init_console();
 
-	uk_pr_info("Entering from KVM (arm64)...\n");
+	uk_pr_info("Entering from GEM5 (arm64)...\n");
 
 	/* Get command line from DTB */
 	_dtb_get_cmdline(cmdline, sizeof(cmdline));
@@ -236,6 +236,6 @@ void _libkvmplat_start(void *dtb_pointer)
 	uk_pr_info("Switch from bootstrap stack to stack @%p\n",
 		   (void *) _libplat_cfg.bstack.end);
 
-	_libkvmplat_newstack((uint64_t) _libplat_cfg.bstack.end,
-				_libkvmplat_entry2, NULL);
+	_libgem5plat_newstack((uint64_t) _libplat_cfg.bstack.end,
+				_libgem5plat_entry2, NULL);
 }

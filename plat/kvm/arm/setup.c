@@ -207,7 +207,7 @@ static void _libkvmplat_entry2(void *arg __attribute__((unused)))
 void _libkvmplat_start(void *dtb_pointer)
 {
 	_init_dtb(dtb_pointer);
-	_libkvmplat_init_console();
+	_libplat_init_console();
 
 	uk_pr_info("Entering from KVM (arm64)...\n");
 

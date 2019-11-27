@@ -48,7 +48,7 @@ page_table_size:
  */
 
 .text
-ENTRY(_libkvmplat_entry)
+ENTRY(_libgem5plat_entry)
 	/* Calculate the image size */
 	ldr x25, =_dtb
 	ldr x26, =_end
@@ -129,16 +129,16 @@ ENTRY(_libkvmplat_entry)
 
 	/* Load dtb address to x0 as a parameter */
 	ldr x0, =_dtb
-	b _libkvmplat_start
-END(_libkvmplat_entry)
+	b _libgem5plat_start
+END(_libgem5plat_entry)
 
-ENTRY(_libkvmplat_newstack)
+ENTRY(_libgem5plat_newstack)
 	/* Setup new stack */
 	mov sp, x0
 
-	/* Setup parameter for _libkvmplat_entry2 */
+	/* Setup parameter for _libgem5plat_entry2 */
 	mov x0, x2
 
-	/* Branch to _libkvmplat_entry2 */
+	/* Branch to _libgem5plat_entry2 */
 	br x1
-END(_libkvmplat_newstack)
+END(_libgem5plat_newstack)

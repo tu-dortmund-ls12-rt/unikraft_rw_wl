@@ -7,6 +7,7 @@ $(eval $(call addplat_s,gem5,$(CONFIG_PLAT_GEM5)))
 ## GEM5 platform library registration
 ##
 $(eval $(call addplatlib,gem5,libgem5plat))
+$(eval $(call addplatlib_s,gem5,libgem5ofw,$(CONFIG_LIBOFW)))
 $(eval $(call addplatlib_s,gem5,libgem5gicv2,$(CONFIG_LIBGICV2)))
 
 ##

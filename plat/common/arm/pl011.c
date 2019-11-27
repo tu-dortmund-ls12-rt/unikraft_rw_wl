@@ -110,7 +110,7 @@ static void init_pl011(uint64_t bas)
 	PL011_REG_WRITE(REG_UARTCR_OFFSET, CR_TXE | CR_UARTEN);
 }
 
-void _libkvmplat_init_console(void)
+void _libplat_init_console(void)
 {
 	int offset, len, naddr, nsize;
 	const uint64_t *regs;

@@ -35,7 +35,7 @@
 #include <kvm-x86/serial_console.h>
 #endif
 
-void _libkvmplat_init_console(void)
+void _libplat_init_console(void)
 {
 #if (CONFIG_KVM_DEBUG_VGA_CONSOLE || CONFIG_KVM_KERNEL_VGA_CONSOLE)
 	_libkvmplat_init_vga_console();

@@ -42,7 +42,7 @@
 
 OUTPUT_FORMAT("elf64-littleaarch64")
 OUTPUT_ARCH(aarch64)
-ENTRY(_libkvmplat_entry)
+ENTRY(_libgem5plat_entry)
 
 /*
  * We use mmu to control each section's attribute, so the boundaries

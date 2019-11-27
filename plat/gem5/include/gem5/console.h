@@ -22,6 +22,6 @@
 #ifndef __KVM_CONSOLE_H__
 #define __KVM_CONSOLE_H__
 
-void _libkvmplat_init_console(void);
+void _libplat_init_console(void);
 
 #endif /* __KVM_CONSOLE_H__ */

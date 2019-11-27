@@ -7,7 +7,7 @@ endif
 ## Link image
 ##
 GEM5_IMAGE := $(BUILD_DIR)/$(CONFIG_UK_NAME)_gem5-$(CONFIG_UK_ARCH)
-GEM5_DEBUG_IMAGE := $(KVM_IMAGE).dbg
+GEM5_DEBUG_IMAGE := $(GEM5_IMAGE).dbg
 
 GEM5_LD_SCRIPT_FLAGS := $(addprefix -Wl$(comma)-dT$(comma),\
 			 $(UK_PLAT_GEM5_DEF_LDS))
@@ -16,7 +16,7 @@ GEM5_LD_SCRIPT_FLAGS += $(addprefix -Wl$(comma)-T$(comma),\
 
 $(GEM5_DEBUG_IMAGE): $(GEM5_ALIBS) $(GEM5_ALIBS-y) $(GEM5_OLIBS) $(GEM5_OLIBS-y) \
 		    $(UK_ALIBS) $(UK_ALIBS-y) $(UK_OLIBS) $(UK_OLIBS-y)
-	$(call build_cmd,LD,,$(KVM_IMAGE).ld.o,\
+	$(call build_cmd,LD,,$(GEM5_IMAGE).ld.o,\
 	       $(LD) -r $(LIBLDFLAGS) $(LIBLDFLAGS-y) \
 			$(GEM5_LDFLAGS) $(GEM5_LDFLAGS-y) \
 			$(GEM5_OLIBS) $(GEM5_OLIBS-y) \
@@ -27,7 +27,7 @@ $(GEM5_DEBUG_IMAGE): $(GEM5_ALIBS) $(GEM5_ALIBS-y) $(GEM5_OLIBS) $(GEM5_OLIBS-y)
 			-Wl$(comma)--end-group \
 			-o $(GEM5_IMAGE).ld.o)
 	$(call build_cmd,OBJCOPY,,$(GEM5_IMAGE).o,\
-		$(OBJCOPY) -w -G kvmos_* -G _libgem5plat_entry \
+		$(OBJCOPY) -w -G gem5os_* -G _libgem5plat_entry \
 			$(GEM5_IMAGE).ld.o $(GEM5_IMAGE).o)
 	$(call build_cmd,LD,,$@,\
 	       $(LD) $(LDFLAGS) $(LDFLAGS-y) \
