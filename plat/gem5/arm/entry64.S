@@ -47,10 +47,12 @@ page_table_size:
  * x0 - FDT pointer
  */
 
-.text
+
+/*Place the entire bootcode in a special section, as gem5 requires it to be at the very beginning of the main memory. This makes linking easier*/
+.section .gem5_arm_bootcode
 ENTRY(_libgem5plat_entry)
 	/* Calculate the image size */
-	ldr x25, =_dtb
+	ldr x25, =_start_bin
 	ldr x26, =_end
 	mov x15, x25
 	sub x15, x26, x15

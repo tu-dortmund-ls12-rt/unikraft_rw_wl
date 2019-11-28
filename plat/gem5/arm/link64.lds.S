@@ -34,8 +34,8 @@
 #include <uk/arch/limits.h>
 #include <common.lds.h>
 
-/* QEMU-AArch64 virt platform's ram base address */
-#define RAM_BASE_ADDR 0x40000000
+/* GEM5 ARK64 RAM base is at  0x80000000, where also the init code has to be*/
+#define RAM_BASE_ADDR 0x80000000
 
 /* Reserve first 1MB for DTB */
 #define DTB_RESERVED_SIZE 0x100000
@@ -54,9 +54,20 @@ ENTRY(_libgem5plat_entry)
 SECTIONS {
 	. = RAM_BASE_ADDR;
 
-	/* Place DTB binary at the beginning of the RAM */
+	_start_bin = .;
+
+	/*Place the bootcode as the very first thing, as gem5 starts to execute here */
+	.gem5_arm_bootcode : {
+		*(.gem5_arm_bootcode)
+	}
+
+	/* Place DTB binary here, can be leter done by gem5 at  0x88000000 statically*/
+	. = ALIGN(8);
 	_dtb = .;
-	. = . + DTB_RESERVED_SIZE;
+	__armv8_gem5_v2_1cpu_dtb : {
+		*(__armv8_gem5_v2_1cpu_dtb)
+	}
+	. = ALIGN(8);
 
 	/* Code */
 	_text = .;
