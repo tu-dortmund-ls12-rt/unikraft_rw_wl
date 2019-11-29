@@ -31,6 +31,11 @@
  *
  * THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
  */
+
+/*OUTPUT_FORMAT("elf64-littleaarch64")*/
+OUTPUT_ARCH(aarch64)
+ENTRY(_libgem5plat_entry)
+
 #include <uk/arch/limits.h>
 #include <common.lds.h>
 
@@ -39,10 +44,6 @@
 
 /* Reserve first 1MB for DTB */
 #define DTB_RESERVED_SIZE 0x100000
-
-OUTPUT_FORMAT("elf64-littleaarch64")
-OUTPUT_ARCH(aarch64)
-ENTRY(_libgem5plat_entry)
 
 /*
  * We use mmu to control each section's attribute, so the boundaries
@@ -56,10 +57,18 @@ SECTIONS {
 
 	_start_bin = .;
 
-	/*Place the bootcode as the very first thing, as gem5 starts to execute here */
-	.gem5_arm_bootcode : {
+	/* Code */
+	_text = .;
+	.text :
+	{
+		/*Place the bootcode as the very first thing, as gem5 starts to execute here */
 		*(.gem5_arm_bootcode)
+		*(.text)
+		*(.text.*)
 	}
+
+	. = ALIGN(__PAGE_SIZE);
+	_etext = .;
 
 	/* Place DTB binary here, can be leter done by gem5 at  0x88000000 statically*/
 	. = ALIGN(8);
@@ -68,17 +77,6 @@ SECTIONS {
 		*(__armv8_gem5_v2_1cpu_dtb)
 	}
 	. = ALIGN(8);
-
-	/* Code */
-	_text = .;
-	.text :
-	{
-		*(.text)
-		*(.text.*)
-	}
-
-	. = ALIGN(__PAGE_SIZE);
-	_etext = .;
 
 	EXCEPTION_SECTIONS
 
@@ -145,6 +143,9 @@ SECTIONS {
 	}
 
 	_end = .;
+
+	/*gem5 needs this to load the image */
+	PROVIDE (end = .);
 
 	.comment       0 : { *(.comment) }
 	DEBUG_SYMBOLS

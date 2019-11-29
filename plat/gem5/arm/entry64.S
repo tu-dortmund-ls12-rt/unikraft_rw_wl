@@ -31,6 +31,7 @@
  *
  * THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
  */
+
 #include <uk/arch/limits.h>
 #include <uk/asm.h>
 #include <gem5-arm/mm.h>
@@ -38,19 +39,18 @@
 #include <sections.h>
 
 .global page_table_size
-.data
-page_table_size:
-	.dword 0x0
 
 /*
  * The registers used by _libkvmplat_start:
  * x0 - FDT pointer
  */
 
+.global _libgem5plat_entry
 
 /*Place the entire bootcode in a special section, as gem5 requires it to be at the very beginning of the main memory. This makes linking easier*/
 .section .gem5_arm_bootcode
-ENTRY(_libgem5plat_entry)
+_libgem5plat_entry:
+	b _libgem5plat_entry
 	/* Calculate the image size */
 	ldr x25, =_start_bin
 	ldr x26, =_end
@@ -132,7 +132,7 @@ ENTRY(_libgem5plat_entry)
 	/* Load dtb address to x0 as a parameter */
 	ldr x0, =_dtb
 	b _libgem5plat_start
-END(_libgem5plat_entry)
+/*END(_libgem5plat_entry)*/
 
 ENTRY(_libgem5plat_newstack)
 	/* Setup new stack */
@@ -144,3 +144,7 @@ ENTRY(_libgem5plat_newstack)
 	/* Branch to _libgem5plat_entry2 */
 	br x1
 END(_libgem5plat_newstack)
+
+.data
+page_table_size:
+	.dword 0x0

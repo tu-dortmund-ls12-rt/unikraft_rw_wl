@@ -210,6 +210,7 @@ void _libgem5plat_start(void *dtb_pointer)
 	_libplat_init_console();
 
 	uk_pr_info("Entering from GEM5 (arm64)...\n");
+	while(1);
 
 	/* Get command line from DTB */
 	_dtb_get_cmdline(cmdline, sizeof(cmdline));

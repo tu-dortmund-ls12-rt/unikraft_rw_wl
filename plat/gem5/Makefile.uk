@@ -19,9 +19,9 @@ LIBGEM5PLAT_CINCLUDES-y         += -I$(LIBGEM5PLAT_BASE)/include
 LIBGEM5PLAT_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
 LIBGEM5PLAT_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
 
-LIBGEM5PLAT_ASFLAGS             += -DGEM5PLAT
-LIBGEM5PLAT_CFLAGS              += -DGEM5PLAT
-LIBGEM5PLAT_CXXFLAGS            += -DGEM5PLAT
+LIBGEM5PLAT_ASFLAGS             += -DGEM5PLAT -fno-exceptions -nostdlib -mstrict-align
+LIBGEM5PLAT_CFLAGS              += -DGEM5PLAT -fno-exceptions -nostdlib -mstrict-align
+LIBGEM5PLAT_CXXFLAGS            += -DGEM5PLAT -fno-exceptions -nostdlib -mstrict-align
 
 ##
 ## Default Linker script
