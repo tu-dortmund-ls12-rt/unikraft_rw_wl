@@ -161,7 +161,7 @@ ENTRY(create_pagetables)
 
 	/* 5th: Update dtb section to readonly */
 	ldr x8, =_dtb
-	ldr x9, =_text
+	ldr x9, =_end_dtb
 	sub x10, x9, x8
 	add x6, x14, #L3_TABLE_OFFSET
 	ldr x7, =SECT_ATTR_NORMAL_RO
@@ -250,6 +250,10 @@ ENTRY(start_mmu)
 	add x1, x1, #__STACK_SIZE
 	sub x1, x1, x0
 	bl clean_and_invalidate_dcache_range
+
+	mov x0, 0x1c090000
+	mov x1, 'p'
+	str w1, [x0]
 
 	/* Setup SCTLR */
 	ldr x2, =SCTLR_SET_BITS

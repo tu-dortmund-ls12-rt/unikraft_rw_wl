@@ -76,6 +76,7 @@ SECTIONS {
 	__armv8_gem5_v2_1cpu_dtb : {
 		*(__armv8_gem5_v2_1cpu_dtb)
 	}
+	_end_dtb = .;
 	. = ALIGN(8);
 
 	EXCEPTION_SECTIONS

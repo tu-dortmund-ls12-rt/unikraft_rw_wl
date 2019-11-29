@@ -50,7 +50,6 @@
 /*Place the entire bootcode in a special section, as gem5 requires it to be at the very beginning of the main memory. This makes linking easier*/
 .section .gem5_arm_bootcode
 _libgem5plat_entry:
-	b _libgem5plat_entry
 	/* Calculate the image size */
 	ldr x25, =_start_bin
 	ldr x26, =_end
@@ -88,6 +87,7 @@ _libgem5plat_entry:
 	sub x1, x27, x25
 	bl clean_and_invalidate_dcache_range
 
+
 	/* Disable the MMU and D-Cache. */
 	dsb sy
 	mrs x2, sctlr_el1
@@ -120,6 +120,9 @@ _libgem5plat_entry:
 	str x17, [x26]
 
 	/* Create a pagetable to do PA == VA mapping */
+	mov x0, 0x1c090000
+	mov x1, 'x'
+	str w1, [x0]
 	bl create_pagetables
 
 	/* Setup exception vector table address before enable MMU */
@@ -127,7 +130,14 @@ _libgem5plat_entry:
 	msr VBAR_EL1, x29
 
 	/* Enable the mmu */
+	mov x0, 0x1c090000
+	mov x1, 'b'
+	str w1, [x0]
 	bl start_mmu
+
+	mov x0, 0x1c090000
+	mov x1, 'a'
+	str w1, [x0]
 
 	/* Load dtb address to x0 as a parameter */
 	ldr x0, =_dtb
