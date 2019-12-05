@@ -38,19 +38,19 @@
 #include <arm/cpu_defs.h>
 /*
  * The following is the Memory Layout of AArch64 Virtual Machine
- * | 0 - 0x3FFFFFFF |   0x40000000 - 0x7FFFFFFFFF           |  512GB - 1TB   |
+ * | 0 - 0x7FFFFFFF |   0x80000000 - 0xFFFFFFFFFF           |  512GB - 1TB   |
  * --------------------------------------------------------------------------
  * |  DEVICES MMIO  | DTB|TEXT|DATA|BSS|PAGETABLE|BOOTSTACK | PCI-e High Mem |
  * --------------------------------------------------------------------------
  */
 #define DEVICE_ADDR_START 0
-#define DEVICE_ADDR_SIZE  0x40000000
-#define RAM_ADDR_START    0x40000000
+#define DEVICE_ADDR_SIZE  0x80000000
+#define RAM_ADDR_START    0x80000000
 #define RAM_L2_ENTRIES    255
-#define RAM_ADDR_SIZE     (0x40000000 * RAM_L2_ENTRIES)
-#define PCIE_ADDR_START   0x8000000000
+#define RAM_ADDR_SIZE     (0x80000000 * RAM_L2_ENTRIES)
+#define PCIE_ADDR_START   0x100000000
 #define PCIE_L2_ENTRIES   512
-#define PCIE_ADDR_SIZE    0x8000000000
+#define PCIE_ADDR_SIZE    0x100000000
 
 /*
  * As we use VA == PA mapping, so the VIRT_BITS must be the same
@@ -260,10 +260,6 @@ ENTRY(start_mmu)
 	add x1, x1, #__STACK_SIZE
 	sub x1, x1, x0
 	bl clean_and_invalidate_dcache_range
-
-	mov x0, 0x1c090000
-	mov x1, 'p'
-	str w1, [x0]
 
 	/* Setup SCTLR */
 	ldr x2, =SCTLR_SET_BITS

@@ -120,24 +120,14 @@ _libgem5plat_entry:
 	str x17, [x26]
 
 	/* Create a pagetable to do PA == VA mapping */
-	/*mov x0, 0x1c090000
-	mov x1, 'x'
-	str w1, [x0]
-	bl create_pagetables*/
+	bl create_pagetables
 
 	/* Setup exception vector table address before enable MMU */
 	ldr x29, =vector_table
 	msr VBAR_EL1, x29
 
 	/* Enable the mmu */
-	/*mov x0, 0x1c090000
-	mov x1, 'b'
-	str w1, [x0]
 	bl start_mmu
-
-	mov x0, 0x1c090000
-	mov x1, 'a'
-	str w1, [x0]*/
 
 	/* Load dtb address to x0 as a parameter */
 	ldr x0, =_dtb
