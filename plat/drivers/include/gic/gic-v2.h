@@ -164,6 +164,7 @@
 #define GICD_ITARGETSR(n)	(0x0800 + (n))
 #define GICD_I_PER_ITARGETSRn	4
 #define GICD_ITARGETSR_DEF	0xffffffff
+#define GICD_ITARGETSR_DEF_SINGLECORE	0x01010101
 
 /*
  * Interrupt Configuration Registers, GICD_ICFGRn

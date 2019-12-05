@@ -46,30 +46,49 @@
 #include <ofw/fdt.h>
 
 /* Max CPU interface for GICv3 */
-#define GIC_MAX_CPUIF		8
+#define GIC_MAX_CPUIF 8
 
 /* SPI interrupt definitions */
-#define GIC_SPI_TYPE		0
-#define GIC_SPI_BASE		32
+#define GIC_SPI_TYPE 0
+#define GIC_SPI_BASE 32
 
 /* PPI interrupt definitions */
-#define GIC_PPI_TYPE		1
-#define GIC_PPI_BASE		16
+#define GIC_PPI_TYPE 1
+#define GIC_PPI_BASE 16
 
 /* Max support interrupt number for GICv3 */
-#define GIC_MAX_IRQ		__MAX_IRQ
+#define GIC_MAX_IRQ __MAX_IRQ
 
-static uint64_t gic_dist_addr, gic_cpuif_addr;
-static uint64_t gic_dist_size, gic_cpuif_size;
+static uint64_t gic_dist_addr, gic_redist_addr;
+static uint64_t gic_dist_size, gic_redist_size;
 
-#define GIC_DIST_REG(r)	((void *)(gic_dist_addr + (r)))
-#define GIC_CPU_REG(r)	((void *)(gic_cpuif_addr + (r)))
-#define IRQ_TYPE_MASK	0x0000000f
+#define GIC_DIST_REG(r) ((void *)(gic_dist_addr + (r)))
+#define IRQ_TYPE_MASK 0x0000000f
 
-static const char * const gic_device_list[] = {
-	"arm,cortex-a15-gic", 
-	NULL
-};
+/**
+ * The GIC CPU interface is accessed through the system register interface as
+ * some v3 implementations do not offer the memory mapped interface. The mapping
+ * from memory offsets to registers is as follows
+ */
+#define GICV3C_SYS_REG_OFFSET_0x0000 "msr S3_0_C12_C12_6, %0" //ICC_IGRPEN0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0004 "msr S3_0_C4_C6_0, %0" //ICC_PMR_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0008 "msr S3_0_C12_C8_3, %0" //ICC_BPR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x000C "msr S3_0_C12_C8_0, %0" //ICC_IAR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0010 "msr S3_0_C12_C8_1, %0" //ICC_EOIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0014 "msr S3_0_C12_C11_3, %0" //ICC_RPR_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0018 "msr S3_0_C12_C8_2, %0" //ICC_HPPIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x001C "msr S3_0_C12_C8_3, %0" //ICC_BPR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0020 "msr S3_0_C12_C8_0, %0" //ICC_IAR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0024 "msr S3_0_C12_C8_1, %0" //ICC_EOIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_40 "msr S3_0_C12_C8_2, %0" //ICC_HPPIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_208 "msr ICC_AP0R0_EL1, %0"
+#define GICV3C_SYS_REG_OFFSET_212 "msr ICC_AP0R1_EL1, %0"
+#define GICV3C_SYS_REG_OFFSET_216 "msr ICC_AP0R2_EL1, %0"
+#define GICV3C_SYS_REG_OFFSET_220 "msr ICC_AP0R3_EL1, %0"
+#define GICV3C_SYS_REG_OFFSET_4096 "msr S3_0_C12_C11_1, %0" //ICC_DIR_EL1
+
+
+static const char *const gic_device_list[] = {"arm,gic-v3", NULL};
 
 /* inline functions to access GICC & GICD registers */
 static inline void write_gicd8(uint64_t offset, uint8_t val)
@@ -87,10 +106,14 @@ static inline uint32_t read_gicd32(uint64_t offset)
 	return ioreg_read32(GIC_DIST_REG(offset));
 }
 
-static inline void write_gicc32(uint64_t offset, uint32_t val)
-{
-	ioreg_write32(GIC_CPU_REG(offset), val);
-}
+// static inline void write_gicc32(uint64_t offset, uint32_t val)
+// {
+// 	ioreg_write32(GIC_CPU_REG(offset), val);
+// }
+
+#define GICV3CCONCAT(a,b) a##b
+uint32_t gicv3cwrite_val;
+#define write_gicc32(n, val) gicv3cwrite_val=val; asm volatile(GICV3CCONCAT(GICV3C_SYS_REG_OFFSET_,n) :: "r"(gicv3cwrite_val));
 
 static inline uint32_t read_gicc32(uint64_t offset)
 {
@@ -212,7 +235,7 @@ void gic_set_irq_target(uint32_t irq, uint8_t target)
 {
 	if (irq < GIC_SPI_BASE)
 		UK_CRASH("Bad irq number: should not less than %u",
-			GIC_SPI_BASE);
+			 GIC_SPI_BASE);
 
 	write_gicd8(GICD_ITARGETSR(irq), target);
 }
@@ -229,8 +252,7 @@ void gic_set_irq_prio(uint32_t irq, uint8_t priority)
  */
 void gic_enable_irq(uint32_t irq)
 {
-	write_gicd32(GICD_ISENABLER(irq),
-		UK_BIT(irq % GICD_I_PER_ISENABLERn));
+	write_gicd32(GICD_ISENABLER(irq), UK_BIT(irq % GICD_I_PER_ISENABLERn));
 }
 
 /*
@@ -239,8 +261,7 @@ void gic_enable_irq(uint32_t irq)
  */
 void gic_disable_irq(uint32_t irq)
 {
-	write_gicd32(GICD_ICENABLER(irq),
-		UK_BIT(irq % GICD_I_PER_ICENABLERn));
+	write_gicd32(GICD_ICENABLER(irq), UK_BIT(irq % GICD_I_PER_ICENABLERn));
 }
 
 /* Enable distributor */
@@ -264,13 +285,13 @@ void gic_set_irq_type(uint32_t irq, int trigger)
 
 	if (irq < GIC_PPI_BASE)
 		UK_CRASH("Bad irq number: should not less than %u",
-			GIC_PPI_BASE);
+			 GIC_PPI_BASE);
 	if (trigger >= UK_IRQ_TRIGGER_MAX)
 		return;
 
 	val = read_gicd32(GICD_ICFGR(irq));
-	mask = oldmask = (val >> ((irq % GICD_I_PER_ICFGRn) * 2)) &
-			GICD_ICFGR_MASK;
+	mask = oldmask =
+	    (val >> ((irq % GICD_I_PER_ICFGRn) * 2)) & GICD_ICFGR_MASK;
 
 	if (trigger == UK_IRQ_TRIGGER_LEVEL) {
 		mask &= ~GICD_ICFGR_TRIG_MASK;
@@ -359,9 +380,11 @@ static void gic_init_dist(void)
 	uk_pr_info("GICv3 Max interrupt lines:%d\n", irq_number);
 	/*
 	 * Set all SPI interrupts targets to all CPU.
+	 * Somehow not supported by gem5, not the only thing btw
 	 */
-	for (i = GIC_SPI_BASE; i < irq_number; i += GICD_I_PER_ITARGETSRn)
-		write_gicd32(GICD_ITARGETSR(i), GICD_ITARGETSR_DEF);
+	// for (i = GIC_SPI_BASE; i < irq_number && i < 1020; i +=
+	// GICD_I_PER_ITARGETSRn) 	write_gicd32(GICD_ITARGETSR(i),
+	// GICD_ITARGETSR_DEF_SINGLECORE);
 
 	/*
 	 * Set all SPI interrupts type to be level triggered
@@ -422,28 +445,25 @@ int _dtb_init_gic(const void *fdt)
 	uk_pr_info("Probing GICv3...\n");
 
 	/* Currently, we only support 1 GIC per system */
-	fdt_gic = fdt_node_offset_by_compatible_list(fdt, -1,
-				gic_device_list);
+	fdt_gic = fdt_node_offset_by_compatible_list(fdt, -1, gic_device_list);
 	if (fdt_gic < 0)
 		UK_CRASH("Could not find GICv3 Interrupt Controller!\n");
 
 	/* Get device address and size at regs region */
-	ret = fdt_get_address(fdt, fdt_gic, 0,
-			&gic_dist_addr, &gic_dist_size);
+	ret = fdt_get_address(fdt, fdt_gic, 0, &gic_dist_addr, &gic_dist_size);
 	if (ret < 0)
 		UK_CRASH("Could not find GICv3 distributor region!\n");
 
-	ret = fdt_get_address(fdt, fdt_gic, 1,
-			&gic_cpuif_addr, &gic_cpuif_size);
+	ret = fdt_get_address(fdt, fdt_gic, 1, &gic_redist_addr,
+			      &gic_redist_size);
 	if (ret < 0)
-		UK_CRASH("Could not find GICv3 cpuif region!\n");
+		UK_CRASH("Could not find GICv3 redistributor region!\n");
 
 	uk_pr_info("Found GICv3 on:\n");
-	uk_pr_info("\tDistributor  : 0x%lx - 0x%lx\n",
-		gic_dist_addr, gic_dist_addr + gic_dist_size - 1);
-	uk_pr_info("\tCPU interface: 0x%lx - 0x%lx\n",
-		gic_cpuif_addr, gic_cpuif_addr + gic_cpuif_size - 1);
-
+	uk_pr_info("\tDistributor  : 0x%lx - 0x%lx\n", gic_dist_addr,
+		   gic_dist_addr + gic_dist_size - 1);
+	uk_pr_info("\tRedistributor: 0x%lx - 0x%lx\n", gic_redist_addr,
+		   gic_redist_addr + gic_redist_size - 1);
 
 	/* Initialize GICv3 distributor */
 	gic_init_dist();
