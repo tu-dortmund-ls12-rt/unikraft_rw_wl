@@ -30,42 +30,42 @@
 
 /* PL011 UART registers and masks*/
 /* Data register */
-#define REG_UARTDR_OFFSET	0x00
+#define REG_UARTDR_OFFSET 0x00
 
 /* Receive status register/error clear register */
-#define REG_UARTRSR_OFFSET	0x04
-#define REG_UARTECR_OFFSET	0x04
+#define REG_UARTRSR_OFFSET 0x04
+#define REG_UARTECR_OFFSET 0x04
 
 /* Flag register */
-#define REG_UARTFR_OFFSET	0x18
-#define FR_TXFF			(1 << 5)    /* Transmit FIFO/reg full */
-#define FR_RXFE			(1 << 4)    /* Receive FIFO/reg empty */
+#define REG_UARTFR_OFFSET 0x18
+#define FR_TXFF (1 << 5) /* Transmit FIFO/reg full */
+#define FR_RXFE (1 << 4) /* Receive FIFO/reg empty */
 
 /* Integer baud rate register */
-#define REG_UARTIBRD_OFFSET	0x24
+#define REG_UARTIBRD_OFFSET 0x24
 /* Fractional baud rate register */
-#define REG_UARTFBRD_OFFSET	0x28
+#define REG_UARTFBRD_OFFSET 0x28
 
 /* Line control register */
-#define REG_UARTLCR_H_OFFSET	0x2C
-#define LCR_H_WLEN8		(0x3 << 5)  /* Data width is 8-bits */
+#define REG_UARTLCR_H_OFFSET 0x2C
+#define LCR_H_WLEN8 (0x3 << 5) /* Data width is 8-bits */
 
 /* Control register */
-#define REG_UARTCR_OFFSET	0x30
-#define CR_RXE			(1 << 9)    /* Receive enable */
-#define CR_TXE			(1 << 8)    /* Transmit enable */
-#define CR_UARTEN		(1 << 0)    /* UART enable */
+#define REG_UARTCR_OFFSET 0x30
+#define CR_RXE (1 << 9)    /* Receive enable */
+#define CR_TXE (1 << 8)    /* Transmit enable */
+#define CR_UARTEN (1 << 0) /* UART enable */
 
 /* Interrupt FIFO level select register */
-#define REG_UARTIFLS_OFFSET	0x34
+#define REG_UARTIFLS_OFFSET 0x34
 /* Interrupt mask set/clear register */
-#define REG_UARTIMSC_OFFSET	0x38
+#define REG_UARTIMSC_OFFSET 0x38
 /* Raw interrupt status register */
-#define REG_UARTRIS_OFFSET	0x3C
+#define REG_UARTRIS_OFFSET 0x3C
 /* Masked interrupt status register */
-#define REG_UARTMIS_OFFSET	0x40
+#define REG_UARTMIS_OFFSET 0x40
 /* Interrupt clear register */
-#define REG_UARTICR_OFFSET	0x44
+#define REG_UARTICR_OFFSET 0x44
 
 /*
  * PL011 UART base address
@@ -84,17 +84,17 @@ static uint64_t pl011_uart_bas = 0;
 #endif
 
 /* Macros to access PL011 Registers with base address */
-#define PL011_REG(r)		((uint16_t *)(pl011_uart_bas + (r)))
-#define PL011_REG_READ(r)	ioreg_read16(PL011_REG(r))
-#define PL011_REG_WRITE(r, v)	ioreg_write16(PL011_REG(r), v)
+#define PL011_REG(r) ((uint16_t *)(pl011_uart_bas + (r)))
+#define PL011_REG_READ(r) ioreg_read16(PL011_REG(r))
+#define PL011_REG_WRITE(r, v) ioreg_write16(PL011_REG(r), v)
 
 static void init_pl011(uint64_t bas)
 {
 	pl011_uart_bas = bas;
 
 	/* Mask all interrupts */
-	PL011_REG_WRITE(REG_UARTIMSC_OFFSET, \
-		PL011_REG_READ(REG_UARTIMSC_OFFSET) & 0xf800);
+	PL011_REG_WRITE(REG_UARTIMSC_OFFSET,
+			PL011_REG_READ(REG_UARTIMSC_OFFSET) & 0xf800);
 
 	/* Clear all interrupts */
 	PL011_REG_WRITE(REG_UARTICR_OFFSET, 0x07ff);
@@ -103,8 +103,9 @@ static void init_pl011(uint64_t bas)
 	PL011_REG_WRITE(REG_UARTCR_OFFSET, 0);
 
 	/* Select 8-bits data transmit and receive */
-	PL011_REG_WRITE(REG_UARTLCR_H_OFFSET, \
-		(PL011_REG_READ(REG_UARTLCR_H_OFFSET) & 0xff00) | LCR_H_WLEN8);
+	PL011_REG_WRITE(REG_UARTLCR_H_OFFSET,
+			(PL011_REG_READ(REG_UARTLCR_H_OFFSET) & 0xff00)
+			    | LCR_H_WLEN8);
 
 	/* Just enable UART and data transmit/receive */
 	PL011_REG_WRITE(REG_UARTCR_OFFSET, CR_TXE | CR_UARTEN);
@@ -116,10 +117,8 @@ void _libplat_init_console(void)
 	const uint64_t *regs;
 	uint64_t reg_uart_bas;
 
-	uk_pr_info("Serial initializing\n");
-
-	offset = fdt_node_offset_by_compatible(_libplat_cfg.dtb, \
-					-1, "arm,pl011");
+	offset =
+	    fdt_node_offset_by_compatible(_libplat_cfg.dtb, -1, "arm,pl011");
 	if (offset < 0)
 		UK_CRASH("No console UART found!\n");
 
@@ -139,6 +138,7 @@ void _libplat_init_console(void)
 	uk_pr_info("Found PL011 UART on: 0x%lx\n", reg_uart_bas);
 
 	init_pl011(reg_uart_bas);
+	pl011_uart_initialized = 1;
 	uk_pr_info("PL011 UART initialized\n");
 }
 
@@ -153,6 +153,7 @@ static void pl011_write(char a)
 	 * Avoid using the UART before base address initialized,
 	 * or CONFIG_KVM_EARLY_DEBUG_PL011_UART doesn't be enabled.
 	 */
+
 	if (!pl011_uart_initialized)
 		return;
 
@@ -184,7 +185,7 @@ static int pl011_getc(void)
 	if (PL011_REG_READ(REG_UARTFR_OFFSET) & FR_RXFE)
 		return -1;
 
-	return (int) (PL011_REG_READ(REG_UARTDR_OFFSET) & 0xff);
+	return (int)(PL011_REG_READ(REG_UARTDR_OFFSET) & 0xff);
 }
 
 int ukplat_coutk(const char *buf, unsigned int len)
@@ -200,9 +201,9 @@ int ukplat_cink(char *buf, unsigned int maxlen)
 	unsigned int num = 0;
 
 	while (num < maxlen && (ret = pl011_getc()) >= 0) {
-		*(buf++) = (char) ret;
+		*(buf++) = (char)ret;
 		num++;
 	}
 
-	return (int) num;
+	return (int)num;
 }

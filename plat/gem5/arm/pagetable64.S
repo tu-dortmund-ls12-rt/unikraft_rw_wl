@@ -208,7 +208,7 @@ ENTRY(start_mmu)
 	isb
 
 	/* Clear the Monitor Debug System control register */
-	msr mdscr_el1, xzr
+	/*@@msr mdscr_el1, xzr*/
 
 	/* Invalidate the TLB to avoid stale one */
 	tlbi vmalle1
@@ -218,20 +218,30 @@ ENTRY(start_mmu)
 	msr mair_el1, x2
 
 	/* Get VIRT_BITS from id_aa64mmfr0_el1.PARange */
-	mrs x3, id_aa64mmfr0_el1
+	/*mrs x3, id_aa64mmfr0_el1
 	ldr x5, =virt_bits
 	ubfx x4, x3, #0, #4
-	ldrb w4, [x5, x4]
+	ldrb w4, [x5, x4]*/
 
 	/* Setup TCR_TxSZ(64 - VIRT_BITS) for TCR_INIT_FLAGS */
-	mov x5, #64
+	/*mov x5, #64
 	sub x5, x5, x4
 	mov x4, x5
-	lsl x5, x5, #TCR_T1SZ_SHIFT
-	orr x5, x4, x5
+	lsl x5, x5, #TCR_T1SZ_SHIFT*/
+
+	mov x2, #(0b1 << 32) /*36 address bits*/
+	orr x2, x2, #(0b10 << 30) /*4KB granularity for TTBR1 */
+	orr x2, x2, #(0b1 << 26) /*Outer WB, allocate for TTBR1 */
+	orr x2, x2, #(0b1 << 24) /*Inner WB, allocate for TTBR1 */
+	orr x2, x2, #(0b1 << 23) /*Disable TTBR1 */
+
+	orr x2, x2, #(0b1 << 10) /*Outer WB, allocate for TTBR0 */
+	orr x2, x2, #(0b1 << 8) /*Inner WB, allocate for TTBR1 */
+
+	/*orr x5, x4, x5
 	ldr x2, =TCR_INIT_FLAGS
 	orr x2, x5, x2
-	bfi x2, x3, #32, #3
+	bfi x2, x3, #32, #3*/
 	msr tcr_el1, x2
 
 	/* save lr */
@@ -257,11 +267,15 @@ ENTRY(start_mmu)
 
 	/* Setup SCTLR */
 	ldr x2, =SCTLR_SET_BITS
+	mov x2, #0b1
 	ldr x3, =SCTLR_CLEAR_BITS
 	mrs x1, sctlr_el1
 	bic x1, x1, x3	/* Clear the required bits */
 	orr x1, x1, x2	/* Set the required bits */
 	msr sctlr_el1, x1
+	isb
+	tlbi vmalle1
+	dsb sy
 	isb
 
 	/* restore lr */
