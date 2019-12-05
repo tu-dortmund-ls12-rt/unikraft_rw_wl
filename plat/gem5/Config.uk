@@ -29,8 +29,8 @@ config GEM5_DEBUG_SERIAL_CONSOLE
           Choose serial console for the debug printing
 endmenu
 
-config LIBGICV2
-       bool "Arm GIC (generic interrupt controller) v2 library support"
+config LIBGICV3
+       bool "Arm GIC (generic interrupt controller) v3 library support"
        default y if ARCH_ARM_64
        select LIBOFW
        depends on ARCH_ARM_64

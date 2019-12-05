@@ -8,7 +8,7 @@ $(eval $(call addplat_s,gem5,$(CONFIG_PLAT_GEM5)))
 ##
 $(eval $(call addplatlib,gem5,libgem5plat))
 $(eval $(call addplatlib_s,gem5,libgem5ofw,$(CONFIG_LIBOFW)))
-$(eval $(call addplatlib_s,gem5,libgem5gicv2,$(CONFIG_LIBGICV2)))
+$(eval $(call addplatlib_s,gem5,libgem5gicv3,$(CONFIG_LIBGICV3)))
 
 ##
 ## Platform library definitions
@@ -71,13 +71,13 @@ LIBGEM5OFW_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
 LIBGEM5OFW_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
 
 LIBGEM5OFW_SRCS-y                  += $(UK_PLAT_DRIVERS_BASE)/ofw/fdt.c
-LIBGEM5OFW_SRCS-$(CONFIG_LIBGICV2) += $(UK_PLAT_DRIVERS_BASE)/ofw/gic_fdt.c
+LIBGEM5OFW_SRCS-$(CONFIG_LIBGICV3) += $(UK_PLAT_DRIVERS_BASE)/ofw/gic_fdt.c
 
 ##
-## GICv2 library definitions
+## GICv3 library definitions
 ##
-LIBGEM5GICV2_CINCLUDES-y         += -I$(LIBGEM5PLAT_BASE)/include
-LIBGEM5GICV2_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
-LIBGEM5GICV2_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
+LIBGEM5GICV3_CINCLUDES-y         += -I$(LIBGEM5PLAT_BASE)/include
+LIBGEM5GICV3_CINCLUDES-y         += -I$(UK_PLAT_COMMON_BASE)/include
+LIBGEM5GICV3_CINCLUDES-y         += -I$(UK_PLAT_DRIVERS_BASE)/include
 
-LIBGEM5GICV2_SRCS-y += $(UK_PLAT_DRIVERS_BASE)/gic/gic-v2.c
+LIBGEM5GICV3_SRCS-y += $(UK_PLAT_DRIVERS_BASE)/gic/gic-v3.c

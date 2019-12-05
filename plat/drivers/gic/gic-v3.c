@@ -45,7 +45,7 @@
 #include <gic/gic-v2.h>
 #include <ofw/fdt.h>
 
-/* Max CPU interface for GICv2 */
+/* Max CPU interface for GICv3 */
 #define GIC_MAX_CPUIF		8
 
 /* SPI interrupt definitions */
@@ -56,7 +56,7 @@
 #define GIC_PPI_TYPE		1
 #define GIC_PPI_BASE		16
 
-/* Max support interrupt number for GICv2 */
+/* Max support interrupt number for GICv3 */
 #define GIC_MAX_IRQ		__MAX_IRQ
 
 static uint64_t gic_dist_addr, gic_cpuif_addr;
@@ -350,13 +350,13 @@ static void gic_init_dist(void)
 	cpuif_number = GICD_TYPER_CPUI_NUM(val);
 	if (cpuif_number > GIC_MAX_CPUIF)
 		cpuif_number = GIC_MAX_CPUIF;
-	uk_pr_info("GICv2 Max CPU interface:%d\n", cpuif_number);
+	uk_pr_info("GICv3 Max CPU interface:%d\n", cpuif_number);
 
 	/* Get the maximum number of interrupts that the GIC supports */
 	irq_number = GICD_TYPER_LINE_NUM(val);
 	if (irq_number > GIC_MAX_IRQ)
 		irq_number = GIC_MAX_IRQ;
-	uk_pr_info("GICv2 Max interrupt lines:%d\n", irq_number);
+	uk_pr_info("GICv3 Max interrupt lines:%d\n", irq_number);
 	/*
 	 * Set all SPI interrupts targets to all CPU.
 	 */
@@ -419,36 +419,36 @@ int _dtb_init_gic(const void *fdt)
 {
 	int fdt_gic, ret;
 
-	uk_pr_info("Probing GICv2...\n");
+	uk_pr_info("Probing GICv3...\n");
 
 	/* Currently, we only support 1 GIC per system */
 	fdt_gic = fdt_node_offset_by_compatible_list(fdt, -1,
 				gic_device_list);
 	if (fdt_gic < 0)
-		UK_CRASH("Could not find GICv2 Interrupt Controller!\n");
+		UK_CRASH("Could not find GICv3 Interrupt Controller!\n");
 
 	/* Get device address and size at regs region */
 	ret = fdt_get_address(fdt, fdt_gic, 0,
 			&gic_dist_addr, &gic_dist_size);
 	if (ret < 0)
-		UK_CRASH("Could not find GICv2 distributor region!\n");
+		UK_CRASH("Could not find GICv3 distributor region!\n");
 
 	ret = fdt_get_address(fdt, fdt_gic, 1,
 			&gic_cpuif_addr, &gic_cpuif_size);
 	if (ret < 0)
-		UK_CRASH("Could not find GICv2 cpuif region!\n");
+		UK_CRASH("Could not find GICv3 cpuif region!\n");
 
-	uk_pr_info("Found GICv2 on:\n");
+	uk_pr_info("Found GICv3 on:\n");
 	uk_pr_info("\tDistributor  : 0x%lx - 0x%lx\n",
 		gic_dist_addr, gic_dist_addr + gic_dist_size - 1);
 	uk_pr_info("\tCPU interface: 0x%lx - 0x%lx\n",
 		gic_cpuif_addr, gic_cpuif_addr + gic_cpuif_size - 1);
 
 
-	/* Initialize GICv2 distributor */
+	/* Initialize GICv3 distributor */
 	gic_init_dist();
 
-	/* Initialize GICv2 CPU interface */
+	/* Initialize GICv3 CPU interface */
 	gic_init_cpuif();
 
 	return 0;
