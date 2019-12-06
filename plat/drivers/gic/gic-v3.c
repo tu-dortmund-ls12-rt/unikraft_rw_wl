@@ -70,42 +70,56 @@ static uint64_t gic_dist_size, gic_redist_size;
  * some v3 implementations do not offer the memory mapped interface. The mapping
  * from memory offsets to registers is as follows
  */
-#define GICV3C_SYS_REG_OFFSET_0x0000 "msr S3_0_C12_C12_6, %0" //ICC_IGRPEN0_EL1
-#define GICV3C_SYS_REG_OFFSET_0x0004 "msr S3_0_C4_C6_0, %0" //ICC_PMR_EL1
-#define GICV3C_SYS_REG_OFFSET_0x0008 "msr S3_0_C12_C8_3, %0" //ICC_BPR0_EL1
-#define GICV3C_SYS_REG_OFFSET_0x000C "msr S3_0_C12_C8_0, %0" //ICC_IAR0_EL1
-#define GICV3C_SYS_REG_OFFSET_0x0010 "msr S3_0_C12_C8_1, %0" //ICC_EOIR0_EL1
-#define GICV3C_SYS_REG_OFFSET_0x0014 "msr S3_0_C12_C11_3, %0" //ICC_RPR_EL1
-#define GICV3C_SYS_REG_OFFSET_0x0018 "msr S3_0_C12_C8_2, %0" //ICC_HPPIR0_EL1
-#define GICV3C_SYS_REG_OFFSET_0x001C "msr S3_0_C12_C8_3, %0" //ICC_BPR0_EL1
-#define GICV3C_SYS_REG_OFFSET_0x0020 "msr S3_0_C12_C8_0, %0" //ICC_IAR0_EL1
-#define GICV3C_SYS_REG_OFFSET_0x0024 "msr S3_0_C12_C8_1, %0" //ICC_EOIR0_EL1
-#define GICV3C_SYS_REG_OFFSET_40 "msr S3_0_C12_C8_2, %0" //ICC_HPPIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0000 "msr S3_0_C12_C12_6, %0" // ICC_IGRPEN0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0004 "msr S3_0_C4_C6_0, %0"   // ICC_PMR_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0008 "msr S3_0_C12_C8_3, %0"  // ICC_BPR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x000C "msr S3_0_C12_C8_0, %0"  // ICC_IAR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0010 "msr S3_0_C12_C8_1, %0"  // ICC_EOIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0014 "msr S3_0_C12_C11_3, %0" // ICC_RPR_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0018 "msr S3_0_C12_C8_2, %0"  // ICC_HPPIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x001C "msr S3_0_C12_C8_3, %0"  // ICC_BPR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0020 "msr S3_0_C12_C8_0, %0"  // ICC_IAR0_EL1
+#define GICV3C_SYS_REG_OFFSET_0x0024 "msr S3_0_C12_C8_1, %0"  // ICC_EOIR0_EL1
+#define GICV3C_SYS_REG_OFFSET_40 "msr S3_0_C12_C8_2, %0"      // ICC_HPPIR0_EL1
 #define GICV3C_SYS_REG_OFFSET_208 "msr ICC_AP0R0_EL1, %0"
 #define GICV3C_SYS_REG_OFFSET_212 "msr ICC_AP0R1_EL1, %0"
 #define GICV3C_SYS_REG_OFFSET_216 "msr ICC_AP0R2_EL1, %0"
 #define GICV3C_SYS_REG_OFFSET_220 "msr ICC_AP0R3_EL1, %0"
-#define GICV3C_SYS_REG_OFFSET_4096 "msr S3_0_C12_C11_1, %0" //ICC_DIR_EL1
+#define GICV3C_SYS_REG_OFFSET_4096 "msr S3_0_C12_C11_1, %0" // ICC_DIR_EL1
 
-#define GICV3READFUN(name, pattern) uint32_t __gicv3_##name(){uint32_t val; asm volatile(pattern :"=r"(val)); return val;};
+#define GICV3READFUN(name, pattern)                                            \
+	uint32_t __gicv3_##name()                                              \
+	{                                                                      \
+		uint32_t val;                                                  \
+		asm volatile(pattern : "=r"(val));                             \
+		return val;                                                    \
+	};
 
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0000 ,"mrs %0, S3_0_C12_C12_6") //ICC_IGRPEN0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0004, "mrs %0, S3_0_C4_C6_0") //ICC_PMR_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0008, "mrs %0, S3_0_C12_C8_3") //ICC_BPR0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x000C, "mrs %0, S3_0_C12_C8_0") //ICC_IAR0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0010, "mrs %0, S3_0_C12_C8_1") //ICC_EOIR0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0014, "mrs %0, S3_0_C12_C11_3") //ICC_RPR_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0018, "mrs %0, S3_0_C12_C8_2") //ICC_HPPIR0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x001C, "mrs %0, S3_0_C12_C8_3") //ICC_BPR0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0020, "mrs %0, S3_0_C12_C8_0") //ICC_IAR0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0024, "mrs %0, S3_0_C12_C8_1") //ICC_EOIR0_EL1
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_40, "mrs %0, S3_0_C12_C8_2") //ICC_HPPIR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0000,
+	     "mrs %0, S3_0_C12_C12_6") // ICC_IGRPEN0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0004, "mrs %0, S3_0_C4_C6_0") // ICC_PMR_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0008,
+	     "mrs %0, S3_0_C12_C8_3") // ICC_BPR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x000C,
+	     "mrs %0, S3_0_C12_C8_0") // ICC_IAR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0010,
+	     "mrs %0, S3_0_C12_C8_1") // ICC_EOIR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0014,
+	     "mrs %0, S3_0_C12_C11_3") // ICC_RPR_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0018,
+	     "mrs %0, S3_0_C12_C8_2") // ICC_HPPIR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x001C,
+	     "mrs %0, S3_0_C12_C8_3") // ICC_BPR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0020,
+	     "mrs %0, S3_0_C12_C8_0") // ICC_IAR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_0x0024,
+	     "mrs %0, S3_0_C12_C8_1")				// ICC_EOIR0_EL1
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_40, "mrs %0, S3_0_C12_C8_2") // ICC_HPPIR0_EL1
 // GICV3READFUN(GICV3C_SYS_REG_OFFSET_208, "mrs %0, ICC_AP0R0_EL1")
 // GICV3READFUN(GICV3C_SYS_REG_OFFSET_212, "mrs %0, ICC_AP0R1_EL1")
 // GICV3READFUN(GICV3C_SYS_REG_OFFSET_216, "mrs %0, ICC_AP0R2_EL1")
 // GICV3READFUN(GICV3C_SYS_REG_OFFSET_220, "mrs %0, ICC_AP0R3_EL1")
-GICV3READFUN(GICV3C_SYS_REG_OFFSET_4096, "mrs %0, S3_0_C12_C11_1") //ICC_DIR_EL1
-
+GICV3READFUN(GICV3C_SYS_REG_OFFSET_4096, "mrs %0, S3_0_C12_C11_1") // ICC_DIR_EL1
 
 static const char *const gic_device_list[] = {"arm,gic-v3", NULL};
 
@@ -130,16 +144,19 @@ static inline uint32_t read_gicd32(uint64_t offset)
 // 	ioreg_write32(GIC_CPU_REG(offset), val);
 // }
 
-#define GICV3CCONCAT(a,b) a##b
+#define GICV3CCONCAT(a, b) a##b
 uint32_t gicv3cwrite_val;
-#define write_gicc32(n, val) gicv3cwrite_val=val; asm volatile(GICV3CCONCAT(GICV3C_SYS_REG_OFFSET_,n) :: "r"(gicv3cwrite_val));
+#define write_gicc32(n, val)                                                   \
+	gicv3cwrite_val = val;                                                 \
+	asm volatile(                                                          \
+	    GICV3CCONCAT(GICV3C_SYS_REG_OFFSET_, n)::"r"(gicv3cwrite_val));
 
 // static inline uint32_t read_gicc32(uint64_t offset)
 // {
 // 	return ioreg_read32(GIC_CPU_REG(offset));
 // }
 
-#define read_gicc32(n) GICV3CCONCAT(__gicv3_GICV3C_SYS_REG_OFFSET_, n) ()
+#define read_gicc32(n) GICV3CCONCAT(__gicv3_GICV3C_SYS_REG_OFFSET_, n)()
 
 /*
  * Functions of GIC CPU interface
@@ -433,6 +450,14 @@ static void gic_init_dist(void)
 
 static void gic_init_cpuif(void)
 {
+	uk_pr_info("Initializing GIC CPU interface with system registers\n");
+	// Enable the System register interface at all
+	uint32_t reg_value = 0;
+
+	asm volatile("mrs %0, S3_0_C12_C12_5" : "=r"(reg_value));
+	reg_value |= 0b1;
+	asm volatile("msr S3_0_C12_C12_5, %0" ::"r"(reg_value));
+
 	/* TODO: need to extend for smp support */
 	uint32_t i;
 
