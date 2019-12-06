@@ -140,8 +140,10 @@ static void _init_dtb_mem(void)
 
 	mem_base = fdt64_to_cpu(regs[0]);
 	mem_size = fdt64_to_cpu(regs[1]);
-	if (mem_base > __TEXT)
+	if (mem_base > __TEXT){
+		uk_pr_info("mem_base at %p, while _TEXT starts at %p",mem_base, __TEXT);
 		UK_CRASH("Fatal: Image outside of RAM\n");
+	}
 
 	max_addr = mem_base + mem_size;
 	_libplat_cfg.pagetable.start = ALIGN_DOWN((uintptr_t)__END,
