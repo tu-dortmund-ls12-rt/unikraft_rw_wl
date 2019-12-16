@@ -32,8 +32,9 @@
  *
  * THIS HEADER MAY NOT BE EXTRACTED OR MODIFIED IN ANY WAY.
  */
-#ifndef __PLAT_DRV_ARM_GIC_H__
-#define __PLAT_DRV_ARM_GIC_H__
+// #ifndef __PLAT_DRV_ARM_GIC_H__
+// #define __PLAT_DRV_ARM_GIC_H__
+#pragma once
 
 /*
  * Distributor registers. Unikraft only support run on non-secure
@@ -374,4 +375,4 @@ void gic_handle_irq(void);
 /* Initialize GICv2 from device tree */
 int _dtb_init_gic(const void *fdt);
 
-#endif //__PLAT_DRV_ARM_GICV2_H__
+// #endif //__PLAT_DRV_ARM_GICV2_H__
