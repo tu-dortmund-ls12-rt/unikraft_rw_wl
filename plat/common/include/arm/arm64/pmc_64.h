@@ -85,7 +85,7 @@ void arm64_pmc_enable_overflow_interrupt(unsigned long counter_num,
 					 unsigned int enabled);
 
 enum arm64_pmc_event_values {
-	BUS_ACCESS_STORE = 0x61,
-	BUS_ACCESS = 0x19,
-	CPU_CYCLES = 0x11
+	ARM64_PMC_BUS_ACCESS_STORE = 0x61,
+	ARM64_PMC_BUS_ACCESS = 0x19,
+	ARM64_PMC_CPU_CYCLES = 0x11
 };
