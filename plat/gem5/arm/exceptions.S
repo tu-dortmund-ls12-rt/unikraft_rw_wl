@@ -104,13 +104,17 @@
 	/* Save stack pointer for lower level exception */
 	mrs x18, sp_el0
 	str x18, [sp, #__SP_EL0_OFFSET]
+.else
+	/* Restore stack pointer for exception from EL1 */
+	mov x18, sp
+	str x18, [sp, #__SP_OFFSET]
 .endif
 
 .endm
 
 .macro LEAVE_TRAP, el
 	/* Mask IRQ to make sure restore would not be interrupted by IRQ */
-	msr daifset, #2
+	/*msr daifset, #2*/
 	/* Restore pstate and exception status register */
 	ldp x22, x23, [sp, #16 * 16]
 	msr spsr_el1, x22
@@ -145,10 +149,9 @@
 	ldr x18, [sp, #__SP_OFFSET]
 	mov sp, x18
 .endif
-	add sp, sp, #__TRAP_STACK_SIZE
-
 	/* Restore x18,x19 */
 	ldp x18, x19, [sp, #16 * 9]
+	add sp, sp, #__TRAP_STACK_SIZE
 
 	eret
 .endm
@@ -170,6 +173,13 @@ el1_sync:
 el1_irq:
 	ENTER_TRAP 1
 	msr daifclr, #(8 | 4 | 1)
+	mov x0, sp
+	bl trap_el1_irq
+	LEAVE_TRAP 1
+.align 6
+el1_fiq:
+	ENTER_TRAP 1
+	/*msr daifclr, #(8 | 4 | 1)*/
 	mov x0, sp
 	bl trap_el1_irq
 	LEAVE_TRAP 1
@@ -225,7 +235,7 @@ ENTRY(vector_table)
 	/* Current Exception level with SP_EL1 */
 	vector_entry el1_sync		/* Synchronous EL1h       */
 	vector_entry el1_irq		/* IRQ EL1h               */
-	vector_entry el1_fiq_invalid	/* FIQ EL1h               */
+	vector_entry el1_fiq	/* FIQ EL1h               */
 	vector_entry el1_error_invalid	/* Error EL1h             */
 
 	/* Lower Exception level using AArch64 */
