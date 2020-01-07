@@ -398,6 +398,20 @@ void gic_handle_irq(void)
 	} while (1);
 }
 
+int gic_is_irq_pending(uint32_t irq)
+{
+	uint32_t val, mask, oldmask;
+
+	if (irq < GIC_PPI_BASE)
+		UK_CRASH("Bad irq number: should not less than %u",
+			 GIC_PPI_BASE);
+
+	val = read_gicd32(GICD_ISPENDR(irq));
+	mask = oldmask = (val >> ((irq % GICD_I_PER_ISPENDRn))) & 0x1;
+
+	return mask;
+}
+
 static void gic_init_dist(void)
 {
 	uint32_t val, cpuif_number, irq_number;

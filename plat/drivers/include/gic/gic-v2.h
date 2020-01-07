@@ -36,6 +36,8 @@
 // #define __PLAT_DRV_ARM_GIC_H__
 #pragma once
 
+#include <stdint.h>
+
 /*
  * Distributor registers. Unikraft only support run on non-secure
  * so we just describe non-secure registers.
