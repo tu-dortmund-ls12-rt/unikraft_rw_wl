@@ -73,7 +73,4 @@ void trap_el1_sync(struct __regs *regs, uint64_t far)
 void trap_el1_irq(void)
 {
 	gic_handle_irq();
-	unsigned long elr;
-	asm volatile("mrs %0, elr_el1":"=r"(elr));
-	printf("Exiting irq, jumping back to %x\n",elr);
 }
