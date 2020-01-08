@@ -1,0 +1,28 @@
+/*
+ * Filename:
+ * /home/christian/repos/uk/unikraft_mirror/plat/common/include/arm/arm64/mmu.h
+ * Path: /home/christian/repos/uk/unikraft_mirror/plat/common/include/arm/arm64
+ * Created Date: Wednesday, January 8th 2020, 9:48:35 am
+ * Author: Christian Hakert
+ *
+ * This is a platform abstracting header for MMU functionality. Up to now, the
+ * main purpose is to modify the mapping and the attrivutes of last level page
+ * map entries. This is needed for libraries, which actively modify memory
+ * permissions and make use of virtual memory, such as isolation of concurrent
+ * threads, memory mirroring or transparent remapping
+ */
+
+enum plat_mmu_memory_permissions {
+	RW_FROM_OS,
+	RW_FROM_OS_USER,
+	R_FROM_OS,
+	R_FROM_OS_USER
+};
+
+enum plat_mmu_memory_permissions
+plat_mmu_get_access_permissions(unsigned long address);
+void plat_mmu_set_access_permissions(
+    unsigned long address, enum plat_mmu_memory_permissions permissions);
+
+unsigned long plat_mmu_get_pm_mapping(unsigned long address);
+void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map);
