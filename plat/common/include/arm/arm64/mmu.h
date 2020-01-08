@@ -1,3 +1,5 @@
+#pragma once
+
 /*
  * Filename:
  * /home/christian/repos/uk/unikraft_mirror/plat/common/include/arm/arm64/mmu.h
@@ -13,10 +15,10 @@
  */
 
 enum plat_mmu_memory_permissions {
-	RW_FROM_OS,
-	RW_FROM_OS_USER,
-	R_FROM_OS,
-	R_FROM_OS_USER
+	PLAT_MMU_PERMISSION_RW_FROM_OS,
+	PLAT_MMU_PERMISSION_RW_FROM_OS_USER,
+	PLAT_MMU_PERMISSION_R_FROM_OS,
+	PLAT_MMU_PERMISSION_R_FROM_OS_USER
 };
 
 enum plat_mmu_memory_permissions
