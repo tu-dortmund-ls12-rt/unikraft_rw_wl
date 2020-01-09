@@ -33,7 +33,7 @@ plat_mmu_get_access_permissions(unsigned long address)
 }
 
 void plat_mmu_set_access_permissions(
-    unsigned long address, enum plat_mmu_memory_permissions permissions)
+    unsigned long address, unsigned long permissions)
 {
 	// Determine L3 Table begin
 	unsigned long *l3_table =

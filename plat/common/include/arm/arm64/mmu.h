@@ -24,7 +24,7 @@ enum plat_mmu_memory_permissions {
 enum plat_mmu_memory_permissions
 plat_mmu_get_access_permissions(unsigned long address);
 void plat_mmu_set_access_permissions(
-    unsigned long address, enum plat_mmu_memory_permissions permissions);
+    unsigned long address, unsigned long permissions);
 
 unsigned long plat_mmu_get_pm_mapping(unsigned long address);
 void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map);

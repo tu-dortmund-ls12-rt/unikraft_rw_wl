@@ -29,6 +29,11 @@ config GEM5_DEBUG_SERIAL_CONSOLE
           Choose serial console for the debug printing
 endmenu
 
+config FORWARD_PAGEFAULT
+       bool "Forwards the pagefaults to a logic specific handler instead of crashing the system"
+       default y
+       depends on ARCH_ARM_64
+
 config LIBGICV3
        bool "Arm GIC (generic interrupt controller) v3 library support"
        default y if ARCH_ARM_64
