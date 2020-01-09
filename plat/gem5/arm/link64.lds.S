@@ -55,6 +55,10 @@ ENTRY(_libgem5plat_entry)
 SECTIONS {
 	. = RAM_BASE_ADDR;
 
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__APPLICATION_TEXT_BEGIN = .;
+#endif
+
 	_start_bin = .;
 
 	/* Code */
@@ -67,23 +71,22 @@ SECTIONS {
 		*(.text.*)
 	}
 
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__APPLICATION_TEXT_END = .;
+#endif
+
 	. = ALIGN(__PAGE_SIZE);
 	_etext = .;
-
-	/* Place DTB binary here, can be leter done by gem5 at  0x88000000 statically*/
-	. = ALIGN(8);
-	_dtb = .;
-	__armv8_gem5_v2_1cpu_dtb : {
-		*(__armv8_gem5_v2_1cpu_dtb)
-	}
-	_end_dtb = .;
-	. = ALIGN(8);
 
 	EXCEPTION_SECTIONS
 
 	CTORTAB_SECTION
 
 	INITTAB_SECTION
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__APPLICATION_DATA_BEGIN = .;
+#endif
 
 	/* Read-only data */
 	. = ALIGN(__PAGE_SIZE);
@@ -126,7 +129,16 @@ SECTIONS {
 		*(.data.*)
 	}
 	_edata = .;
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__APPLICATION_DATA_END = .;
+#endif
+
 	. = ALIGN(__PAGE_SIZE);
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__APPLICATION_BSS_BEGIN = .;
+#endif
 
 	__bss_start = .;
 	/* Read-write data that is not initialized explicitly in code */
@@ -142,6 +154,46 @@ SECTIONS {
 	 * the boot is done.
 	 */
 	}
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__APPLICATION_BSS_END = .;
+#endif
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__STUFF_BEGIN = .;
+#endif
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	. = ALIGN(__PAGE_SIZE);
+	/* Place the wear-leveling code here */
+	__WL_TEXT_SECTION_BEGIN = .;
+	.wl_text :
+	{
+		*(.wl_text)
+	}
+	. = ALIGN(__PAGE_SIZE);
+	__WL_TEXT_SECTION_END = .;
+	__WL_DATA_SECTION_BEGIN = .;
+	.wl_data :
+	{
+		*(.wl_data)
+	}
+	__WL_DATA_SECTION_END = .;
+#endif
+
+	/* Place DTB binary here, can be leter done by gem5 at  0x88000000 statically*/
+	. = ALIGN(__PAGE_SIZE);
+	_dtb = .;
+	__armv8_gem5_v2_1cpu_dtb : {
+		*(__armv8_gem5_v2_1cpu_dtb)
+	}
+	_end_dtb = .;
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	__NVMSYMBOL__STUFF_END = .;
+#endif
+
+	. = ALIGN(__PAGE_SIZE);
 
 	_end = .;
 

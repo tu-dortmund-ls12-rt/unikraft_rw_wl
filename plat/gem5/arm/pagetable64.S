@@ -179,6 +179,18 @@ ENTRY(create_pagetables)
 	lsr x10, x10, L3_SHIFT
 	bl  build_l3_pagetable
 
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+	/* 6.5th: Update wl specific text section to Readonly & EXEC*/
+	ldr x8, =__WL_TEXT_SECTION_BEGIN
+	ldr x9, =__WL_TEXT_SECTION_END
+	sub x10, x9, x8
+	add x6, x14, #L3_TABLE_OFFSET
+	ldr x7, =SECT_ATTR_NORMAL_EXEC
+	mov x9, x8
+	lsr x10, x10, L3_SHIFT
+	bl  build_l3_pagetable
+#endif
+
 	/* 7th: Update rodata and Constructor tables sections to Readonly */
 	ldr x8, =_rodata
 	ldr x9, =_ectors

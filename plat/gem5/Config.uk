@@ -31,6 +31,11 @@ endmenu
 
 config FORWARD_PAGEFAULT
        bool "Forwards the pagefaults to a logic specific handler instead of crashing the system"
+       default n
+       depends on ARCH_ARM_64
+
+config SEPARATE_CODE_LINKING
+       bool "Adds special sections to the linked binary, which contain the applications text, data/bss and stack"
        default y
        depends on ARCH_ARM_64
 
