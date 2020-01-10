@@ -160,7 +160,28 @@ SECTIONS {
 #endif
 
 #ifdef CONFIG_SEPARATE_CODE_LINKING
+__NVMSYMBOL__APPLICATION_STACK_BEGIN = .;
+    .app_stack : {
+        . = ALIGN(0x8);
+        . += 0x8000; /* 1MB */
+        __appstack_top = .;
+    }
+__NVMSYMBOL__APPLICATION_STACK_END = .;
+#endif
+
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
 	__NVMSYMBOL__STUFF_BEGIN = .;
+#endif
+
+#ifdef CONFIG_SEPARATE_CODE_LINKING
+__IRQ_STACK_BEGIN = .;
+    .irq_stack : {
+        . = ALIGN(0x8);
+        . += 0x8000; /* 1MB */
+        __irqstack_top = .;
+    }
+__IRQ_STACK_END = .;
 #endif
 
 #ifdef CONFIG_SEPARATE_CODE_LINKING
