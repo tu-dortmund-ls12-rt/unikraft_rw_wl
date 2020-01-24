@@ -199,6 +199,7 @@ __IRQ_STACK_END = .;
 	{
 		*(.wl_data)
 	}
+	. = ALIGN(__PAGE_SIZE);
 	__WL_DATA_SECTION_END = .;
 #endif
 

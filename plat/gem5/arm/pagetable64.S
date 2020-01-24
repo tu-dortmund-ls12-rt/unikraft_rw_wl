@@ -185,7 +185,7 @@ ENTRY(create_pagetables)
 	ldr x9, =__WL_TEXT_SECTION_END
 	sub x10, x9, x8
 	add x6, x14, #L3_TABLE_OFFSET
-	ldr x7, =SECT_ATTR_NORMAL_EXEC
+	ldr x7, =SECT_ATTR_NORMAL_EXEC_ALL_EL
 	mov x9, x8
 	lsr x10, x10, L3_SHIFT
 	bl  build_l3_pagetable
