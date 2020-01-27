@@ -53,6 +53,16 @@ static void dump_registers(struct __regs *regs, uint64_t far)
 void invalid_trap_handler(struct __regs *regs, uint32_t el, uint32_t reason,
 			  uint64_t far)
 {
+	// Check for a wanted SVC first
+	unsigned long esr_el1;
+	asm volatile("mrs %0, esr_el1" : "=r"(esr_el1));
+	if (((esr_el1 >> 26) & 0b111111) == 0b010101) {
+		// SVC, may be desired
+		if (uk_plat_arm_common_handle_syscall(esr_el1 & 0xFFFF)) {
+			return;
+		}
+	}
+
 	uk_pr_crit("Unikraft: EL%d invalid %s trap caught\n", el,
 		   exception_modes[reason]);
 	dump_registers(regs, far);
