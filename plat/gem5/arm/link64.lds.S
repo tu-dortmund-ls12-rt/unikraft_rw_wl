@@ -55,10 +55,6 @@ ENTRY(_libgem5plat_entry)
 SECTIONS {
 	. = RAM_BASE_ADDR;
 
-#ifdef CONFIG_SEPARATE_CODE_LINKING
-	__NVMSYMBOL__APPLICATION_TEXT_BEGIN = .;
-#endif
-
 	_start_bin = .;
 
 	/* Code */
@@ -69,11 +65,8 @@ SECTIONS {
 		*(.gem5_arm_bootcode)
 		*(.text)
 		*(.text.*)
+		. = ALIGN(__PAGE_SIZE);
 	}
-
-#ifdef CONFIG_SEPARATE_CODE_LINKING
-	__NVMSYMBOL__APPLICATION_TEXT_END = .;
-#endif
 
 	. = ALIGN(__PAGE_SIZE);
 	_etext = .;
@@ -83,10 +76,6 @@ SECTIONS {
 	CTORTAB_SECTION
 
 	INITTAB_SECTION
-
-#ifdef CONFIG_SEPARATE_CODE_LINKING
-	__NVMSYMBOL__APPLICATION_DATA_BEGIN = .;
-#endif
 
 	/* Read-only data */
 	. = ALIGN(__PAGE_SIZE);
@@ -130,15 +119,7 @@ SECTIONS {
 	}
 	_edata = .;
 
-#ifdef CONFIG_SEPARATE_CODE_LINKING
-	__NVMSYMBOL__APPLICATION_DATA_END = .;
-#endif
-
 	. = ALIGN(__PAGE_SIZE);
-
-#ifdef CONFIG_SEPARATE_CODE_LINKING
-	__NVMSYMBOL__APPLICATION_BSS_BEGIN = .;
-#endif
 
 	__bss_start = .;
 	/* Read-write data that is not initialized explicitly in code */
@@ -156,11 +137,30 @@ SECTIONS {
 	}
 
 #ifdef CONFIG_SEPARATE_CODE_LINKING
+	. = ALIGN(__PAGE_SIZE);
+	/* Place the app code here */
+	__NVMSYMBOL__APPLICATION_TEXT_BEGIN = .;
+	.app_text :
+	{
+		*(.app_text)
+	}
+	. = ALIGN(__PAGE_SIZE);
+	__NVMSYMBOL__APPLICATION_TEXT_END = .;
+	__NVMSYMBOL__APPLICATION_DATA_BEGIN = .;
+	.app_data :
+	{
+		*(.app_data)
+	}
+	. = ALIGN(__PAGE_SIZE);
+	__NVMSYMBOL__APPLICATION_DATA_END = .;
+	__NVMSYMBOL__APPLICATION_BSS_BEGIN = .;
+	.app_bss :
+	{
+		*(.app_bss)
+	}
+	. = ALIGN(__PAGE_SIZE);
 	__NVMSYMBOL__APPLICATION_BSS_END = .;
-#endif
-
-#ifdef CONFIG_SEPARATE_CODE_LINKING
-__NVMSYMBOL__APPLICATION_STACK_BEGIN = .;
+	__NVMSYMBOL__APPLICATION_STACK_BEGIN = .;
     .app_stack : {
         . = ALIGN(0x8);
         . += 0x8000; /* 1MB */

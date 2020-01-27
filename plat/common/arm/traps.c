@@ -53,6 +53,14 @@ static void dump_registers(struct __regs *regs, uint64_t far)
 void invalid_trap_handler(struct __regs *regs, uint32_t el, uint32_t reason,
 			  uint64_t far)
 {
+	uk_pr_crit("Unikraft: EL%d invalid %s trap caught\n", el,
+		   exception_modes[reason]);
+	dump_registers(regs, far);
+	ukplat_crash();
+}
+
+void trap_el0_sync(struct __regs *regs, uint64_t far)
+{
 	// Check for a wanted SVC first
 	unsigned long esr_el1;
 	asm volatile("mrs %0, esr_el1" : "=r"(esr_el1));
@@ -63,27 +71,19 @@ void invalid_trap_handler(struct __regs *regs, uint32_t el, uint32_t reason,
 		}
 	}
 
-	uk_pr_crit("Unikraft: EL%d invalid %s trap caught\n", el,
-		   exception_modes[reason]);
-	dump_registers(regs, far);
-	ukplat_crash();
-}
-
-void trap_el1_sync(struct __regs *regs, uint64_t far)
-{
-/**
- * Page faults are sync traps but actually not that bad. Some apps or libs may
- * produce page faults on purpose to do something. In case this feature is
- * available, a page fault is forwared to an implementable handler instead of
- * crashing the entire system
- */
+	/**
+	 * Page faults are sync traps but actually not that bad. Some apps or
+	 * libs may produce page faults on purpose to do something. In case this
+	 * feature is available, a page fault is forwared to an implementable
+	 * handler instead of crashing the entire system
+	 */
 #ifdef CONFIG_FORWARD_PAGEFAULT
 	// Check the exception syndrome register first, to figure out if there
 	// was a page fault
-	unsigned long esr_el1;
+	// unsigned long esr_el1;
 	asm volatile("mrs %0, esr_el1" : "=r"(esr_el1));
 	// Check for MMU data error first
-	if ((esr_el1 & 0xFC000000) == 0x94000000) {
+	if ((esr_el1 & 0xFC000000) == 0x90000000) {
 		// Check if it was a permission fault on Table level 3
 		if ((esr_el1 & 0x3F) == 0x0F) {
 			extern void uk_upper_level_page_fault_handler();
@@ -93,6 +93,14 @@ void trap_el1_sync(struct __regs *regs, uint64_t far)
 	}
 
 #endif
+	uk_pr_crit("Unikraft: EL0 sync trap caught\n");
+
+	dump_registers(regs, far);
+	ukplat_crash();
+}
+
+void trap_el1_sync(struct __regs *regs, uint64_t far)
+{
 	uk_pr_crit("Unikraft: EL1 sync trap caught\n");
 
 	dump_registers(regs, far);

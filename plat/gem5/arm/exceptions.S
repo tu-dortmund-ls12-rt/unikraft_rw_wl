@@ -117,12 +117,12 @@
 	/*msr daifset, #2*/
 	/* Restore pstate and exception status register */
 	ldp x22, x23, [sp, #16 * 16]
-	msr spsr_el1, x22
-	msr esr_el1, x23
+	/*msr spsr_el1, x22
+	msr esr_el1, x23*/
 
 	/* Restore LR and exception PC */
 	ldp x30, x21, [sp, #16 * 15]
-	msr elr_el1, x21
+	/*msr elr_el1, x21*/
 
 	/* Restore general purpose registers */
 	ldp x28, x29, [sp, #16 * 14]
@@ -184,6 +184,21 @@ el1_fiq:
 	bl trap_el1_irq
 	LEAVE_TRAP 1
 
+.align 6
+el0_sync:
+	ENTER_TRAP 1
+	mov x0, sp
+	mrs x1, far_el1
+	bl trap_el0_sync
+	LEAVE_TRAP 1
+.align 6
+el0_fiq:
+	ENTER_TRAP 1
+	/*msr daifclr, #(8 | 4 | 1)*/
+	mov x0, sp
+	bl trap_el1_irq
+	LEAVE_TRAP 1
+
 /* Bad Abort numbers */
 #define BAD_SYNC  0
 #define BAD_IRQ   1
@@ -239,9 +254,9 @@ ENTRY(vector_table)
 	vector_entry el1_error_invalid	/* Error EL1h             */
 
 	/* Lower Exception level using AArch64 */
-	vector_entry el0_sync_invalid	/* Synchronous 64-bit EL0 */
+	vector_entry el0_sync	/* Synchronous 64-bit EL0 */
 	vector_entry el0_irq_invalid	/* IRQ 64-bit EL0         */
-	vector_entry el0_fiq_invalid	/* FIQ 64-bit EL0         */
+	vector_entry el0_fiq	/* FIQ 64-bit EL0         */
 	vector_entry el0_error_invalid	/* Error 64-bit EL0       */
 
 	/* Lower Exception level using AArch32 */

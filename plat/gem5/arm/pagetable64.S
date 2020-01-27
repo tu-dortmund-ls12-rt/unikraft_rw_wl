@@ -189,6 +189,16 @@ ENTRY(create_pagetables)
 	mov x9, x8
 	lsr x10, x10, L3_SHIFT
 	bl  build_l3_pagetable
+
+	/* 6.75th: Update app specific text section to Readonly & EXEC*/
+	ldr x8, =__NVMSYMBOL__APPLICATION_TEXT_BEGIN
+	ldr x9, =__NVMSYMBOL__APPLICATION_TEXT_END
+	sub x10, x9, x8
+	add x6, x14, #L3_TABLE_OFFSET
+	ldr x7, =SECT_ATTR_NORMAL_EXEC_ALL_EL
+	mov x9, x8
+	lsr x10, x10, L3_SHIFT
+	bl  build_l3_pagetable
 #endif
 
 	/* 7th: Update rodata and Constructor tables sections to Readonly */
