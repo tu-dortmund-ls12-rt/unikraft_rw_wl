@@ -16,6 +16,51 @@ void plat_mmu_flush_tlb()
 		     "isb;");
 }
 
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+#define PLAT_MMU_STACK_L3_SIZE                                                 \
+	((((CONFIG_APPLICATION_STACK_SIZE) >> 12) + 1) * 2)
+#define PLAT_MMU_STACK_L2_SIZE ((PLAT_MMU_STACK_L3_SIZE / 512) + 1)
+
+unsigned long plat_mmu_stack_l2_table[PLAT_MMU_STACK_L2_SIZE]
+    __attribute((aligned(0x1000)));
+unsigned long plat_mmu_stack_l3_table[PLAT_MMU_STACK_L3_SIZE]
+    __attribute((aligned(0x1000)));
+
+void plat_mmu_setup_stack_pages()
+{
+	// Figure out L1 Entry first
+	unsigned long *l1_table =
+	    (unsigned long *)(((unsigned long)&_end) + L1_TABLE_OFFSET);
+	// Write L1 Table entry to L2 (!G)
+	l1_table[PLAT_MMU_VSTACK_BASE >> 30] =
+	    ((unsigned long)plat_mmu_stack_l2_table) | 0b11;
+
+	// Fill the L2 Table with further 2MB Table entries
+	unsigned long number_l2_entries =
+	    ((CONFIG_APPLICATION_STACK_SIZE >> 21) * 2) + 1;
+	for (unsigned long i = 0; i < number_l2_entries; i++) {
+		plat_mmu_stack_l2_table[i] =
+		    (((unsigned long)plat_mmu_stack_l3_table) + i * 4096)
+		    | 0b11;
+	}
+
+	// Fill the L3 Table with 4k block entries
+	unsigned long number_l3_entries =
+	    (CONFIG_APPLICATION_STACK_SIZE >> 12) * 2;
+	extern unsigned long __NVMSYMBOL__APPLICATION_STACK_BEGIN;
+	unsigned long real_stack_begin =
+	    (unsigned long)(&__NVMSYMBOL__APPLICATION_STACK_BEGIN);
+	for (unsigned long i = 0; i < number_l3_entries; i++) {
+		plat_mmu_stack_l3_table[i] =
+		    (real_stack_begin
+		     + (i % (CONFIG_APPLICATION_STACK_SIZE >> 12)) * 4096)
+		    | 0b11100100111;
+	}
+
+	plat_mmu_flush_tlb();
+}
+#endif
+
 enum plat_mmu_memory_permissions
 plat_mmu_get_access_permissions(unsigned long address)
 {
@@ -32,8 +77,8 @@ plat_mmu_get_access_permissions(unsigned long address)
 	return target_permissions >> 6;
 }
 
-void plat_mmu_set_access_permissions(
-    unsigned long address, unsigned long permissions)
+void plat_mmu_set_access_permissions(unsigned long address,
+				     unsigned long permissions)
 {
 	// Determine L3 Table begin
 	unsigned long *l3_table =

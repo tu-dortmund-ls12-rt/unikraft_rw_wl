@@ -163,7 +163,7 @@ SECTIONS {
 	__NVMSYMBOL__APPLICATION_STACK_BEGIN = .;
     .app_stack : {
         . = ALIGN(0x8);
-        . += 0x8000; /* 1MB */
+        . += CONFIG_APPLICATION_STACK_SIZE;
         __appstack_top = .;
     }
 __NVMSYMBOL__APPLICATION_STACK_END = .;

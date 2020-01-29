@@ -1,5 +1,7 @@
 #pragma once
 
+#include <uk/config.h>
+
 /*
  * Filename:
  * /home/christian/repos/uk/unikraft_mirror/plat/common/include/arm/arm64/mmu.h
@@ -21,10 +23,18 @@ enum plat_mmu_memory_permissions {
 	PLAT_MMU_PERMISSION_R_FROM_OS_USER
 };
 
+
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+
+#define PLAT_MMU_VSTACK_BASE 0x800000000
+
+void plat_mmu_setup_stack_pages();
+#endif
+
 enum plat_mmu_memory_permissions
 plat_mmu_get_access_permissions(unsigned long address);
-void plat_mmu_set_access_permissions(
-    unsigned long address, unsigned long permissions);
+void plat_mmu_set_access_permissions(unsigned long address,
+				     unsigned long permissions);
 
 unsigned long plat_mmu_get_pm_mapping(unsigned long address);
 void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map);

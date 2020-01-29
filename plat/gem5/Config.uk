@@ -39,6 +39,16 @@ config SEPARATE_CODE_LINKING
        default y
        depends on ARCH_ARM_64
 
+config SEPARATE_STACK_PAGETABLES
+       bool "Uses a seperate (above 4G) pagetable for stack (and shadow stack)"
+       default n
+       depends on (ARCH_ARM_64 && SEPARATE_CODE_LINKING)
+
+config APPLICATION_STACK_SIZE
+       hex "The stack size, the application should get"
+       default 0x8000
+       depends on (ARCH_ARM_64)
+
 config LIBGICV3
        bool "Arm GIC (generic interrupt controller) v3 library support"
        default y if ARCH_ARM_64
