@@ -71,6 +71,13 @@ plat_mmu_get_access_permissions(unsigned long address)
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
 
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
+	}
+#endif
+
 	// Load the permissions
 	unsigned long target_permissions =
 	    l3_table[(address - vm_offset) >> 12] & 0xC0;
@@ -87,11 +94,32 @@ void plat_mmu_set_access_permissions(unsigned long address,
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
 
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
+	}
+#endif
+
 	// Load the permissions
 	unsigned long target_page = l3_table[(address - vm_offset) >> 12];
 	target_page &= ~(0xC0);
 	target_page |= ((permissions << 6) & 0xC0);
 	l3_table[(address - vm_offset) >> 12] = target_page;
+
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
+			address += CONFIG_APPLICATION_STACK_SIZE;
+		} else {
+			address -= CONFIG_APPLICATION_STACK_SIZE;
+		}
+		target_page = l3_table[(address - vm_offset) >> 12];
+		target_page &= ~(0xC0);
+		target_page |= ((permissions << 6) & 0xC0);
+		l3_table[(address - vm_offset) >> 12] = target_page;
+	}
+#endif
 	plat_mmu_flush_tlb();
 }
 
@@ -103,6 +131,13 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
+
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
+	}
+#endif
 
 	// Load the address
 	unsigned long target_pm_page =
@@ -118,11 +153,34 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
 
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
+	}
+#endif
+
 	// Load the address
 	unsigned long target_page = l3_table[(address - vm_offset) >> 12];
 	// Modify the address
 	target_page &= ~0xFFFFFFFFF000;
 	target_page |= (pm_map & 0xFFFFFFFFF000);
 	l3_table[(address - vm_offset) >> 12] = target_page;
+
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
+			address += CONFIG_APPLICATION_STACK_SIZE;
+		} else {
+			address -= CONFIG_APPLICATION_STACK_SIZE;
+		}
+		// Load the address
+		target_page = l3_table[(address - vm_offset) >> 12];
+		// Modify the address
+		target_page &= ~0xFFFFFFFFF000;
+		target_page |= (pm_map & 0xFFFFFFFFF000);
+		l3_table[(address - vm_offset) >> 12] = target_page;
+	}
+#endif
 	plat_mmu_flush_tlb();
 }
