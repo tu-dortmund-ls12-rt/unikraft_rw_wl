@@ -86,8 +86,10 @@ void trap_el0_sync(struct __regs *regs, uint64_t far)
 	if ((esr_el1 & 0xFC000000) == 0x90000000) {
 		// Check if it was a permission fault on Table level 3
 		if ((esr_el1 & 0x3F) == 0x0F) {
-			extern void uk_upper_level_page_fault_handler();
-			uk_upper_level_page_fault_handler();
+			extern void uk_upper_level_page_fault_handler(
+			    unsigned long *register_stack);
+			uk_upper_level_page_fault_handler(
+			    (unsigned long *)regs);
 			return;
 		}
 	}
