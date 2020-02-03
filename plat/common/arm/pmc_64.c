@@ -45,11 +45,11 @@ void arm64_pmc_set_counters_enabled(unsigned int enabled)
 void arm64_pmc_set_event_counter_enabled(unsigned long counter_num,
 					 unsigned int enabled)
 {
-	unsigned long pmcntenset = 5;
-	asm volatile("mrs %0, pmcntenset_el0" : "=r"(pmcntenset));
-	pmcntenset &= ~(0b1 << counter_num);
-	pmcntenset |= (enabled << counter_num);
-	asm volatile("msr pmcntenset_el0, %0" ::"r"(pmcntenset));
+	unsigned long mask = (0b1 << counter_num);
+	if (enabled)
+		asm volatile("msr pmcntenset_el0, %0" ::"r"(mask));
+	else
+		asm volatile("msr pmcntenclr_el0, %0" ::"r"(mask));
 }
 
 void arm64_pmc_enable_overflow_interrupt(unsigned long counter_num,
@@ -58,12 +58,25 @@ void arm64_pmc_enable_overflow_interrupt(unsigned long counter_num,
 	if (!enabled) {
 		unsigned long pmintenclr = 5;
 		asm volatile("mrs %0, pmintenclr_el1" : "=r"(pmintenclr));
-		pmintenclr |= (0b1 << counter_num);
+		pmintenclr = (0b1 << counter_num);
 		asm volatile("msr pmintenclr_el1, %0" ::"r"(pmintenclr));
 	} else {
 		unsigned long pmintenset = 5;
 		asm volatile("mrs %0, pmintenset_el1" : "=r"(pmintenset));
-		pmintenset |= (0b1 << counter_num);
+		pmintenset = (0b1 << counter_num);
 		asm volatile("msr pmintenset_el1, %0" ::"r"(pmintenset));
 	}
+}
+
+int arm64_pmc_read_counter_overflow_bit(unsigned int counter_num)
+{
+	unsigned int pmovsclr = 42;
+	asm volatile("mrs %0, pmovsclr_el0" : "=r"(pmovsclr));
+	return (pmovsclr & (0b1 << counter_num)) >> counter_num;
+}
+
+void arm64_pmc_clear_counter_overflow_bit(unsigned int counter_num)
+{
+	unsigned long mask = (0b1 << counter_num);
+	asm volatile("msr pmovsclr_el0, %0" : : "r"(mask));
 }

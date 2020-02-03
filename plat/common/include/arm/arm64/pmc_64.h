@@ -63,6 +63,9 @@ void arm64_pmc_set_event_counter_enabled(unsigned long counter_num,
 		pmevtyper;                                                     \
 	})
 
+int arm64_pmc_read_counter_overflow_bit(unsigned int counter_num);
+void arm64_pmc_clear_counter_overflow_bit(unsigned int counter_num);
+
 #define arm64_pmc_set_secure_el3_counting(counter_num, enabled)                \
 	arm64_pmc_set_pmevtyper_bit(counter_num, enabled, 26)
 
@@ -85,6 +88,7 @@ void arm64_pmc_enable_overflow_interrupt(unsigned long counter_num,
 					 unsigned int enabled);
 
 enum arm64_pmc_event_values {
+	ARM64_PMC_BUS_ACCESS_LOAD = 0x60,
 	ARM64_PMC_BUS_ACCESS_STORE = 0x61,
 	ARM64_PMC_BUS_ACCESS = 0x19,
 	ARM64_PMC_CPU_CYCLES = 0x11
