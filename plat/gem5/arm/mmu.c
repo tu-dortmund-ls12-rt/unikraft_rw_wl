@@ -85,7 +85,8 @@ plat_mmu_get_access_permissions(unsigned long address)
 }
 
 void plat_mmu_set_access_permissions(unsigned long address,
-				     unsigned long permissions)
+				     unsigned long permissions,
+				     int unprivieged_execution)
 {
 	// Determine L3 Table begin
 	unsigned long *l3_table =
@@ -105,6 +106,11 @@ void plat_mmu_set_access_permissions(unsigned long address,
 	unsigned long target_page = l3_table[(address - vm_offset) >> 12];
 	target_page &= ~(0xC0);
 	target_page |= ((permissions << 6) & 0xC0);
+	if (unprivieged_execution) {
+		target_page &= ~(0b1 << 54);
+	} else {
+		target_page |= (0b1 << 54);
+	}
 	l3_table[(address - vm_offset) >> 12] = target_page;
 
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
@@ -117,6 +123,11 @@ void plat_mmu_set_access_permissions(unsigned long address,
 		target_page = l3_table[(address - vm_offset) >> 12];
 		target_page &= ~(0xC0);
 		target_page |= ((permissions << 6) & 0xC0);
+		if (unprivieged_execution) {
+			target_page &= ~(0b1 << 54);
+		} else {
+			target_page |= (0b1 << 54);
+		}
 		l3_table[(address - vm_offset) >> 12] = target_page;
 	}
 #endif

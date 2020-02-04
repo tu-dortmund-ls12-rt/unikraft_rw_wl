@@ -86,12 +86,35 @@ void trap_el0_sync(struct __regs *regs, uint64_t far)
 	if ((esr_el1 & 0xFC000000) == 0x90000000) {
 		// Check if it was a permission fault on Table level 3
 		if ((esr_el1 & 0x3F) == 0x0F) {
-			extern void uk_upper_level_page_fault_handler(
-			    unsigned long *register_stack);
-			uk_upper_level_page_fault_handler(
-			    (unsigned long *)regs);
-			return;
+			// Distinguish between read and write
+			if ((esr_el1 & 0x40) == 0x40) {
+				extern void uk_upper_level_page_fault_handler_w(
+				    unsigned long *register_stack);
+				uk_upper_level_page_fault_handler_w(
+				    (unsigned long *)regs);
+				return;
+			} else {
+				extern void uk_upper_level_page_fault_handler_r(
+				    unsigned long *register_stack);
+				uk_upper_level_page_fault_handler_r(
+				    (unsigned long *)regs);
+				return;
+			}
 		}
+	}
+
+#endif
+#ifdef CONFIG_FORWARD_DEBUG_BREAKPOINT
+	// Check the exception syndrome register first, to figure out if there
+	// was a breakpoint instruction
+	// unsigned long esr_el1;
+	asm volatile("mrs %0, esr_el1" : "=r"(esr_el1));
+	// Check for Debug fault
+	if ((esr_el1 & 0xFC000000) == 0xF0000000) {
+		extern void uk_upper_level_breakpoint_handler(
+		    unsigned long *register_stack);
+		uk_upper_level_breakpoint_handler((unsigned long *)regs);
+		return;
 	}
 
 #endif

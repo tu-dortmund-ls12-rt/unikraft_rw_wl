@@ -34,6 +34,11 @@ config FORWARD_PAGEFAULT
        default n
        depends on ARCH_ARM_64
 
+config FORWARD_DEBUG_BREAKPOINT
+       bool "Forwards the breakpoint traps to a logic specific handler instead of crashing the system"
+       default n
+       depends on ARCH_ARM_64
+
 config SEPARATE_CODE_LINKING
        bool "Adds special sections to the linked binary, which contain the applications text, data/bss and stack"
        default y
