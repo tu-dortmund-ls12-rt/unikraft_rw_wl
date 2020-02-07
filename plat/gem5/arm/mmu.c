@@ -31,7 +31,7 @@ void plat_mmu_setup_stack_pages()
 	// Figure out L1 Entry first
 	unsigned long *l1_table =
 	    (unsigned long *)(((unsigned long)&_end) + L1_TABLE_OFFSET);
-	// Write L1 Table entry to L2 (!G)
+	// Write L1 Table entry to L2 (1G)
 	l1_table[PLAT_MMU_VSTACK_BASE >> 30] =
 	    ((unsigned long)plat_mmu_stack_l2_table) | 0b11;
 
@@ -61,6 +61,49 @@ void plat_mmu_setup_stack_pages()
 }
 #endif
 
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+
+extern unsigned long uk_app_text_size;
+
+#define PLAT_MMU_TEXT_L3_SIZE ((((uk_app_text_size) >> 12) + 1) * 2)
+#define PLAT_MMU_TEXT_L2_SIZE ((PLAT_MMU_TEXT_L3_SIZE / 512) + 1)
+
+unsigned long plat_mmu_text_l2_table[PLAT_MMU_TEXT_L2_SIZE]
+    __attribute((aligned(0x1000)));
+unsigned long plat_mmu_text_l3_table[PLAT_MMU_TEXT_L3_SIZE]
+    __attribute((aligned(0x1000)));
+
+void plat_mmu_setup_stack_pages()
+{
+	// Figure out L1 Entry first
+	unsigned long *l1_table =
+	    (unsigned long *)(((unsigned long)&_end) + L1_TABLE_OFFSET);
+	// Write L1 Table entry to L2 (1G)
+	l1_table[PLAT_MMU_VTEXT_BASE >> 30] =
+	    ((unsigned long)plat_mmu_text_l2_table) | 0b11;
+
+	// Fill the L2 Table with further 2MB Table entries
+	unsigned long number_l2_entries = ((uk_app_text_size >> 21) * 2) + 1;
+	for (unsigned long i = 0; i < number_l2_entries; i++) {
+		plat_mmu_text_l2_table[i] =
+		    (((unsigned long)plat_mmu_text_l3_table) + i * 4096) | 0b11;
+	}
+
+	// Fill the L3 Table with 4k block entries
+	unsigned long number_l3_entries = (uk_app_text_size >> 12) * 2;
+	extern unsigned long __NVMSYMBOL__APPLICATION_DATA_BEGIN;
+	unsigned long real_text_begin =
+	    ((unsigned long)(&__NVMSYMBOL__APPLICATION_DATA_BEGIN)) + 0x1000;
+	for (unsigned long i = 0; i < number_l3_entries; i++) {
+		plat_mmu_text_l3_table[i] =
+		    (real_text_begin + (i % (uk_app_text_size >> 12)) * 4096)
+		    | 0b11100100111;
+	}
+
+	plat_mmu_flush_tlb();
+}
+#endif
+
 enum plat_mmu_memory_permissions
 plat_mmu_get_access_permissions(unsigned long address)
 {
@@ -75,6 +118,12 @@ plat_mmu_get_access_permissions(unsigned long address)
 	if (address >= PLAT_MMU_VSTACK_BASE) {
 		l3_table = plat_mmu_stack_l3_table;
 		vm_offset = PLAT_MMU_VSTACK_BASE;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE) {
+		l3_table = plat_mmu_text_l3_table;
+		vm_offset = PLAT_MMU_VTEXT_BASE;
 	}
 #endif
 
@@ -99,6 +148,12 @@ void plat_mmu_set_access_permissions(unsigned long address,
 	if (address >= PLAT_MMU_VSTACK_BASE) {
 		l3_table = plat_mmu_stack_l3_table;
 		vm_offset = PLAT_MMU_VSTACK_BASE;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE) {
+		l3_table = plat_mmu_text_l3_table;
+		vm_offset = PLAT_MMU_VTEXT_BASE;
 	}
 #endif
 
@@ -131,6 +186,24 @@ void plat_mmu_set_access_permissions(unsigned long address,
 		l3_table[(address - vm_offset) >> 12] = target_page;
 	}
 #endif
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE) {
+		if ((address - vm_offset) < uk_app_text_size) {
+			address += uk_app_text_size;
+		} else {
+			address -= uk_app_text_size;
+		}
+		target_page = l3_table[(address - vm_offset) >> 12];
+		target_page &= ~(0xC0);
+		target_page |= ((permissions << 6) & 0xC0);
+		if (unprivieged_execution) {
+			target_page &= ~(0b1 << 54);
+		} else {
+			target_page |= (0b1 << 54);
+		}
+		l3_table[(address - vm_offset) >> 12] = target_page;
+	}
+#endif
 	plat_mmu_flush_tlb();
 }
 
@@ -147,6 +220,12 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 	if (address >= PLAT_MMU_VSTACK_BASE) {
 		l3_table = plat_mmu_stack_l3_table;
 		vm_offset = PLAT_MMU_VSTACK_BASE;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE) {
+		l3_table = plat_mmu_text_l3_table;
+		vm_offset = PLAT_MMU_VTEXT_BASE;
 	}
 #endif
 
@@ -170,6 +249,12 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
 #endif
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE) {
+		l3_table = plat_mmu_text_l3_table;
+		vm_offset = PLAT_MMU_VTEXT_BASE;
+	}
+#endif
 
 	// Load the address
 	unsigned long target_page = l3_table[(address - vm_offset) >> 12];
@@ -184,6 +269,21 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 			address += CONFIG_APPLICATION_STACK_SIZE;
 		} else {
 			address -= CONFIG_APPLICATION_STACK_SIZE;
+		}
+		// Load the address
+		target_page = l3_table[(address - vm_offset) >> 12];
+		// Modify the address
+		target_page &= ~0xFFFFFFFFF000;
+		target_page |= (pm_map & 0xFFFFFFFFF000);
+		l3_table[(address - vm_offset) >> 12] = target_page;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE) {
+		if ((address - vm_offset) < uk_app_text_size) {
+			address += uk_app_text_size;
+		} else {
+			address -= uk_app_text_size;
 		}
 		// Load the address
 		target_page = l3_table[(address - vm_offset) >> 12];

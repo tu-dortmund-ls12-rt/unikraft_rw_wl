@@ -30,6 +30,13 @@ enum plat_mmu_memory_permissions {
 void plat_mmu_setup_stack_pages();
 #endif
 
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+
+#define PLAT_MMU_VTEXT_BASE 0xA00000000
+
+void plat_mmu_setup_text_pages();
+#endif
+
 enum plat_mmu_memory_permissions
 plat_mmu_get_access_permissions(unsigned long address);
 void plat_mmu_set_access_permissions(unsigned long address,

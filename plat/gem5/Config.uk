@@ -49,6 +49,11 @@ config SEPARATE_STACK_PAGETABLES
        default n
        depends on (ARCH_ARM_64 && SEPARATE_CODE_LINKING)
 
+config SEPARATE_TEXT_PAGETABLES
+       bool "Uses a seperate (above 4G) pagetable for text (and shadow text)"
+       default n
+       depends on (ARCH_ARM_64 && SEPARATE_CODE_LINKING)
+
 config APPLICATION_STACK_SIZE
        hex "The stack size, the application should get"
        default 0x8000
