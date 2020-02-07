@@ -138,14 +138,6 @@ SECTIONS {
 
 #ifdef CONFIG_SEPARATE_CODE_LINKING
 	. = ALIGN(__PAGE_SIZE);
-	/* Place the app code here */
-	__NVMSYMBOL__APPLICATION_TEXT_BEGIN = .;
-	.app_text :
-	{
-		*(.app_text)
-	}
-	. = ALIGN(__PAGE_SIZE);
-	__NVMSYMBOL__APPLICATION_TEXT_END = .;
 	__NVMSYMBOL__APPLICATION_DATA_BEGIN = .;
 	.app_data :
 	{
@@ -153,13 +145,6 @@ SECTIONS {
 	}
 	. = ALIGN(__PAGE_SIZE);
 	__NVMSYMBOL__APPLICATION_DATA_END = .;
-	__NVMSYMBOL__APPLICATION_BSS_BEGIN = .;
-	.app_bss :
-	{
-		*(.app_bss)
-	}
-	. = ALIGN(__PAGE_SIZE);
-	__NVMSYMBOL__APPLICATION_BSS_END = .;
 	__NVMSYMBOL__APPLICATION_STACK_BEGIN = .;
     .app_stack : {
         . = ALIGN(0x8);
