@@ -63,17 +63,15 @@ void plat_mmu_setup_stack_pages()
 
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 
+extern unsigned long plat_mmu_text_l2_table[];
+extern unsigned long plat_mmu_text_l3_table[];
+
+extern unsigned long plat_mmu_text_l2_size;
+extern unsigned long plat_mmu_text_l3_size;
+
 extern unsigned long uk_app_text_size;
 
-#define PLAT_MMU_TEXT_L3_SIZE ((((uk_app_text_size) >> 12) + 1) * 2)
-#define PLAT_MMU_TEXT_L2_SIZE ((PLAT_MMU_TEXT_L3_SIZE / 512) + 1)
-
-unsigned long plat_mmu_text_l2_table[PLAT_MMU_TEXT_L2_SIZE]
-    __attribute((aligned(0x1000)));
-unsigned long plat_mmu_text_l3_table[PLAT_MMU_TEXT_L3_SIZE]
-    __attribute((aligned(0x1000)));
-
-void plat_mmu_setup_stack_pages()
+void plat_mmu_setup_text_pages()
 {
 	// Figure out L1 Entry first
 	unsigned long *l1_table =
