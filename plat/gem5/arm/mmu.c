@@ -95,7 +95,7 @@ void plat_mmu_setup_text_pages()
 	for (unsigned long i = 0; i < number_l3_entries; i++) {
 		plat_mmu_text_l3_table[i] =
 		    (real_text_begin + (i % (uk_app_text_size >> 12)) * 4096)
-		    | 0b11100100111;
+		    | 0b11101100111;
 	}
 
 	plat_mmu_flush_tlb();

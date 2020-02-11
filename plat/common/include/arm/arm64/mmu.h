@@ -32,7 +32,7 @@ void plat_mmu_setup_stack_pages();
 
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 
-#define PLAT_MMU_VTEXT_BASE 0xA00000000
+#define PLAT_MMU_VTEXT_BASE 0x600000000
 
 void plat_mmu_setup_text_pages();
 #endif
