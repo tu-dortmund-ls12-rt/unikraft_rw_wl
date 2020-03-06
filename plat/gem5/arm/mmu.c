@@ -100,7 +100,8 @@ void plat_mmu_setup_text_pages()
 		    (real_text_begin + (i % (uk_app_text_size >> 12)) * 4096)
 		    | 0b11101100111;
 		// printf("Mapping text 0x%lx to 0x%lx\n",
-		//        &plat_mmu_text_l3_table[i], plat_mmu_text_l3_table[i]);
+		//        &plat_mmu_text_l3_table[i],
+		//        plat_mmu_text_l3_table[i]);
 	}
 	unsigned long number_l3_got_entries = (uk_app_got_size >> 12);
 	for (unsigned long i = 0; i < number_l3_got_entries; i++) {
@@ -126,16 +127,16 @@ plat_mmu_get_access_permissions(unsigned long address)
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
 
-#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
-	if (address >= PLAT_MMU_VSTACK_BASE) {
-		l3_table = plat_mmu_stack_l3_table;
-		vm_offset = PLAT_MMU_VSTACK_BASE;
-	}
-#endif
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE) {
 		l3_table = plat_mmu_text_l3_table;
 		vm_offset = PLAT_MMU_VTEXT_BASE;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
 #endif
 
@@ -156,16 +157,16 @@ void plat_mmu_set_access_permissions(unsigned long address,
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
 
-#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
-	if (address >= PLAT_MMU_VSTACK_BASE) {
-		l3_table = plat_mmu_stack_l3_table;
-		vm_offset = PLAT_MMU_VSTACK_BASE;
-	}
-#endif
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE) {
 		l3_table = plat_mmu_text_l3_table;
 		vm_offset = PLAT_MMU_VTEXT_BASE;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
 #endif
 
@@ -180,6 +181,28 @@ void plat_mmu_set_access_permissions(unsigned long address,
 	}
 	l3_table[(address - vm_offset) >> 12] = target_page;
 
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	    && address < PLAT_MMU_VSTACK_BASE
+#endif
+	) {
+		if ((address - vm_offset) < uk_app_text_size) {
+			address += uk_app_text_size;
+		} else {
+			address -= uk_app_text_size;
+		}
+		target_page = l3_table[(address - vm_offset) >> 12];
+		target_page &= ~(0xC0);
+		target_page |= ((permissions << 6) & 0xC0);
+		if (unprivieged_execution) {
+			target_page &= ~(0b1 << 54);
+		} else {
+			target_page |= (0b1 << 54);
+		}
+		l3_table[(address - vm_offset) >> 12] = target_page;
+	}
+#endif
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
 	if (address >= PLAT_MMU_VSTACK_BASE) {
 		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
@@ -198,24 +221,7 @@ void plat_mmu_set_access_permissions(unsigned long address,
 		l3_table[(address - vm_offset) >> 12] = target_page;
 	}
 #endif
-#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
-	if (address >= PLAT_MMU_VTEXT_BASE) {
-		if ((address - vm_offset) < uk_app_text_size) {
-			address += uk_app_text_size;
-		} else {
-			address -= uk_app_text_size;
-		}
-		target_page = l3_table[(address - vm_offset) >> 12];
-		target_page &= ~(0xC0);
-		target_page |= ((permissions << 6) & 0xC0);
-		if (unprivieged_execution) {
-			target_page &= ~(0b1 << 54);
-		} else {
-			target_page |= (0b1 << 54);
-		}
-		l3_table[(address - vm_offset) >> 12] = target_page;
-	}
-#endif
+
 	plat_mmu_flush_tlb();
 }
 
@@ -228,16 +234,16 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
 
-#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
-	if (address >= PLAT_MMU_VSTACK_BASE) {
-		l3_table = plat_mmu_stack_l3_table;
-		vm_offset = PLAT_MMU_VSTACK_BASE;
-	}
-#endif
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE) {
 		l3_table = plat_mmu_text_l3_table;
 		vm_offset = PLAT_MMU_VTEXT_BASE;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
 #endif
 
@@ -248,6 +254,7 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 }
 void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 {
+	// printf("Mapping 0x%lx to 0x%lx\n", address, pm_map);
 	// Determine L3 Table begin
 	unsigned long *l3_table =
 	    (unsigned long *)(((unsigned long)&_end) + L3_TABLE_OFFSET);
@@ -255,16 +262,16 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
 
-#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
-	if (address >= PLAT_MMU_VSTACK_BASE) {
-		l3_table = plat_mmu_stack_l3_table;
-		vm_offset = PLAT_MMU_VSTACK_BASE;
-	}
-#endif
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE) {
 		l3_table = plat_mmu_text_l3_table;
 		vm_offset = PLAT_MMU_VTEXT_BASE;
+	}
+#endif
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		l3_table = plat_mmu_stack_l3_table;
+		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
 #endif
 
@@ -275,13 +282,19 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	target_page |= (pm_map & 0xFFFFFFFFF000);
 	l3_table[(address - vm_offset) >> 12] = target_page;
 
+#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
+	if (address >= PLAT_MMU_VTEXT_BASE
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
-	if (address >= PLAT_MMU_VSTACK_BASE) {
-		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
-			address += CONFIG_APPLICATION_STACK_SIZE;
+	    && address < PLAT_MMU_VSTACK_BASE
+#endif
+	) {
+		if ((address - vm_offset) < uk_app_text_size) {
+			address += uk_app_text_size;
 		} else {
-			address -= CONFIG_APPLICATION_STACK_SIZE;
+			address -= uk_app_text_size;
 		}
+		// printf("Is a text page, therefore also mapping 0x%lx\n",
+		    //    address);
 		// Load the address
 		target_page = l3_table[(address - vm_offset) >> 12];
 		// Modify the address
@@ -290,13 +303,15 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 		l3_table[(address - vm_offset) >> 12] = target_page;
 	}
 #endif
-#ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
-	if (address >= PLAT_MMU_VTEXT_BASE) {
-		if ((address - vm_offset) < uk_app_text_size) {
-			address += uk_app_text_size;
+#ifdef CONFIG_SEPARATE_STACK_PAGETABLES
+	if (address >= PLAT_MMU_VSTACK_BASE) {
+		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
+			address += CONFIG_APPLICATION_STACK_SIZE;
 		} else {
-			address -= uk_app_text_size;
+			address -= CONFIG_APPLICATION_STACK_SIZE;
 		}
+		// printf("Is a stack page, therefore also mapping 0x%lx\n",
+		    //    address);
 		// Load the address
 		target_page = l3_table[(address - vm_offset) >> 12];
 		// Modify the address
