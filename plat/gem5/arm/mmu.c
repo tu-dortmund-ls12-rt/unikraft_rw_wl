@@ -117,6 +117,64 @@ void plat_mmu_setup_text_pages()
 }
 #endif
 
+// #define CONFIG_MAP_SPARE_VM_SPACE
+
+#ifdef CONFIG_MAP_SPARE_VM_SPACE
+
+extern unsigned long plat_mmu_text_l2_table[];
+extern unsigned long plat_mmu_text_l3_table[];
+
+extern unsigned long plat_mmu_text_l2_size;
+extern unsigned long plat_mmu_text_l3_size;
+
+extern unsigned long uk_app_text_size;
+extern unsigned long uk_app_got_size;
+
+void plat_mmu_setup_text_pages()
+{
+	// Figure out L1 Entry first
+	unsigned long *l1_table =
+	    (unsigned long *)(((unsigned long)&_end) + L1_TABLE_OFFSET);
+	// Write L1 Table entry to L2 (1G)
+	l1_table[PLAT_MMU_VTEXT_BASE >> 30] =
+	    ((unsigned long)plat_mmu_text_l2_table) | 0b11;
+
+	unsigned long total_size = (uk_app_text_size * 2 + uk_app_got_size);
+
+	// Fill the L2 Table with further 2MB Table entries
+	unsigned long number_l2_entries = (total_size >> 21) + 1;
+	for (unsigned long i = 0; i < number_l2_entries; i++) {
+		plat_mmu_text_l2_table[i] =
+		    (((unsigned long)plat_mmu_text_l3_table) + i * 4096) | 0b11;
+	}
+
+	// Fill the L3 Table with 4k block entries
+	unsigned long number_l3_text_entries = (uk_app_text_size >> 12) * 2;
+	extern unsigned long __NVMSYMBOL__APPLICATION_DATA_BEGIN;
+	unsigned long real_text_begin =
+	    ((unsigned long)(&__NVMSYMBOL__APPLICATION_DATA_BEGIN)) + 0x1000;
+	for (unsigned long i = 0; i < number_l3_text_entries; i++) {
+		plat_mmu_text_l3_table[i] =
+		    (real_text_begin + (i % (uk_app_text_size >> 12)) * 4096)
+		    | 0b11101100111;
+		// printf("Mapping text 0x%lx to 0x%lx\n",
+		//        &plat_mmu_text_l3_table[i],
+		//        plat_mmu_text_l3_table[i]);
+	}
+	unsigned long number_l3_got_entries = (uk_app_got_size >> 12);
+	for (unsigned long i = 0; i < number_l3_got_entries; i++) {
+		plat_mmu_text_l3_table[number_l3_text_entries + i] =
+		    (real_text_begin + uk_app_text_size + i * 0x1000)
+		    | 0b11101100111;
+		// printf("Mapping got 0x%lx to 0x%lx\n",
+		//        &plat_mmu_text_l3_table[number_l3_text_entries + i],
+		//        plat_mmu_text_l3_table[number_l3_text_entries + i]);
+	}
+
+	plat_mmu_flush_tlb();
+}
+#endif
+
 enum plat_mmu_memory_permissions
 plat_mmu_get_access_permissions(unsigned long address)
 {

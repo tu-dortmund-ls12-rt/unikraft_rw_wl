@@ -54,6 +54,16 @@ config SEPARATE_TEXT_PAGETABLES
        default n
        depends on (ARCH_ARM_64 && SEPARATE_CODE_LINKING)
 
+config MAP_SPARE_VM_SPACE
+       bool "Fill the spare VM space with pagetables to maintain page based pointer consitency"
+       default n
+       depends on (ARCH_ARM_64 && SEPARATE_CODE_LINKING)
+
+config SPARE_VM_BASE
+       hex "The base of spare VM, which should be used"
+       default 0xA00000000
+       depends on (ARCH_ARM_64)
+
 config APPLICATION_STACK_SIZE
        hex "The stack size, the application should get"
        default 0x8000
