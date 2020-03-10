@@ -117,61 +117,27 @@ void plat_mmu_setup_text_pages()
 }
 #endif
 
-// #define CONFIG_MAP_SPARE_VM_SPACE
-
 #ifdef CONFIG_MAP_SPARE_VM_SPACE
 
-extern unsigned long plat_mmu_text_l2_table[];
-extern unsigned long plat_mmu_text_l3_table[];
+extern unsigned long plat_mmu_sparevm_l1_table[];
 
-extern unsigned long plat_mmu_text_l2_size;
-extern unsigned long plat_mmu_text_l3_size;
-
-extern unsigned long uk_app_text_size;
-extern unsigned long uk_app_got_size;
-
-void plat_mmu_setup_text_pages()
+void plat_mmu_setup_sparevm_pages()
 {
-	// Figure out L1 Entry first
-	unsigned long *l1_table =
-	    (unsigned long *)(((unsigned long)&_end) + L1_TABLE_OFFSET);
-	// Write L1 Table entry to L2 (1G)
-	l1_table[PLAT_MMU_VTEXT_BASE >> 30] =
-	    ((unsigned long)plat_mmu_text_l2_table) | 0b11;
+	// Figure out L0 Entries
+	unsigned long *l0_table =
+	    (unsigned long *)(((unsigned long)&_end) + L0_TABLE_OFFSET);
 
-	unsigned long total_size = (uk_app_text_size * 2 + uk_app_got_size);
+	unsigned long findex = CONFIG_SPARE_VM_BASE >> 39;
 
-	// Fill the L2 Table with further 2MB Table entries
-	unsigned long number_l2_entries = (total_size >> 21) + 1;
-	for (unsigned long i = 0; i < number_l2_entries; i++) {
-		plat_mmu_text_l2_table[i] =
-		    (((unsigned long)plat_mmu_text_l3_table) + i * 4096) | 0b11;
+	// Populate L0 with specific L1 table
+	for (unsigned long start = CONFIG_SPARE_VM_BASE;
+	     start < (0x1000000000000UL); start += 0x8000000000UL) {
+		unsigned long index = start >> 39;
+		l0_table[index] =
+		    0b11
+		    | (((unsigned long)(&plat_mmu_sparevm_l1_table))
+		       + 4096 * (index - findex));
 	}
-
-	// Fill the L3 Table with 4k block entries
-	unsigned long number_l3_text_entries = (uk_app_text_size >> 12) * 2;
-	extern unsigned long __NVMSYMBOL__APPLICATION_DATA_BEGIN;
-	unsigned long real_text_begin =
-	    ((unsigned long)(&__NVMSYMBOL__APPLICATION_DATA_BEGIN)) + 0x1000;
-	for (unsigned long i = 0; i < number_l3_text_entries; i++) {
-		plat_mmu_text_l3_table[i] =
-		    (real_text_begin + (i % (uk_app_text_size >> 12)) * 4096)
-		    | 0b11101100111;
-		// printf("Mapping text 0x%lx to 0x%lx\n",
-		//        &plat_mmu_text_l3_table[i],
-		//        plat_mmu_text_l3_table[i]);
-	}
-	unsigned long number_l3_got_entries = (uk_app_got_size >> 12);
-	for (unsigned long i = 0; i < number_l3_got_entries; i++) {
-		plat_mmu_text_l3_table[number_l3_text_entries + i] =
-		    (real_text_begin + uk_app_text_size + i * 0x1000)
-		    | 0b11101100111;
-		// printf("Mapping got 0x%lx to 0x%lx\n",
-		//        &plat_mmu_text_l3_table[number_l3_text_entries + i],
-		//        plat_mmu_text_l3_table[number_l3_text_entries + i]);
-	}
-
-	plat_mmu_flush_tlb();
 }
 #endif
 
@@ -352,7 +318,7 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 			address -= uk_app_text_size;
 		}
 		// printf("Is a text page, therefore also mapping 0x%lx\n",
-		    //    address);
+		//    address);
 		// Load the address
 		target_page = l3_table[(address - vm_offset) >> 12];
 		// Modify the address
@@ -369,7 +335,7 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 			address -= CONFIG_APPLICATION_STACK_SIZE;
 		}
 		// printf("Is a stack page, therefore also mapping 0x%lx\n",
-		    //    address);
+		//    address);
 		// Load the address
 		target_page = l3_table[(address - vm_offset) >> 12];
 		// Modify the address

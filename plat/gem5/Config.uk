@@ -61,7 +61,7 @@ config MAP_SPARE_VM_SPACE
 
 config SPARE_VM_BASE
        hex "The base of spare VM, which should be used"
-       default 0xA00000000
+       default 0x8000000000
        depends on (ARCH_ARM_64)
 
 config APPLICATION_STACK_SIZE
