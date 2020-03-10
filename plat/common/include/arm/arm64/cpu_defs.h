@@ -302,9 +302,9 @@
 #define SECT_ATTR_NORMAL_RO                                                    \
 	(SECT_ATTR_DEFAULT | ATTR_XN | ATTR_AP_RW_BIT | ATTR_IDX(NORMAL_WB))
 #define SECT_ATTR_NORMAL_EXEC                                                  \
-	(SECT_ATTR_DEFAULT | ATTR_AP_RW_BIT | ATTR_IDX(NORMAL_WB))
+	(SECT_ATTR_DEFAULT | ATTR_IDX(NORMAL_WB))
 #define SECT_ATTR_NORMAL_EXEC_ALL_EL                                           \
-	(SECT_ATTR_DEFAULT | ATTR_AP_RW_BIT | ATTR_IDX(NORMAL_WB))
+	(SECT_ATTR_DEFAULT | ATTR_IDX(NORMAL_WB))
 #define SECT_ATTR_DEVICE_nGnRE                                                 \
 	(SECT_ATTR_DEFAULT | ATTR_XN | ATTR_IDX(DEVICE_nGnRnE) | ATTR_AP_RW_EL0_BIT)
 
