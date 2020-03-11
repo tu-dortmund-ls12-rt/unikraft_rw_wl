@@ -383,7 +383,11 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	}
 #endif
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
-	if (address >= PLAT_MMU_VSTACK_BASE) {
+	if (address >= PLAT_MMU_VSTACK_BASE
+#ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
+	    && address < CONFIG_SPARE_VM_BASE
+#endif
+	) {
 		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
 			address += CONFIG_APPLICATION_STACK_SIZE;
 		} else {
