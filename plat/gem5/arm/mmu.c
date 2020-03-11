@@ -6,7 +6,7 @@
 
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
 extern unsigned long uk_so_wl_text_spare_vm_begin;
-extern unsigned long *plat_mmu_sparevm_l3_table;
+extern unsigned long plat_mmu_sparevm_l3_table[];
 #endif
 
 // This is the very end of the memory
@@ -316,7 +316,7 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 #endif
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
 	if (address >= PLAT_MMU_VSTACK_BASE) {
-		printf("S");
+		// printf("S");
 		l3_table = plat_mmu_stack_l3_table;
 		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
@@ -332,7 +332,8 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 	// Load the address
 	unsigned long target_pm_page =
 	    l3_table[(address - vm_offset) >> 12] & 0xFFFFFFFFF000;
-	// printf(" -> 0x%lx\n", target_pm_page);
+	// printf("(%d at 0x%lx) -> 0x%lx\n", ((address - vm_offset) >> 12),
+	//        l3_table, target_pm_page);
 	return target_pm_page;
 }
 void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
@@ -405,7 +406,7 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	    && address < CONFIG_SPARE_VM_BASE
 #endif
 	) {
-		printf("_S");
+		// printf("_S");
 		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
 			address += CONFIG_APPLICATION_STACK_SIZE;
 		} else {
@@ -426,7 +427,7 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	extern unsigned long uk_app_text_size;
 	if (address >= uk_so_wl_text_spare_vm_begin
 	    && address < uk_so_wl_text_spare_vm_begin + 2 * uk_app_text_size) {
-		printf("_V");
+		// printf("_V");
 		if ((address - vm_offset) < uk_app_text_size) {
 			address += uk_app_text_size;
 		} else {
