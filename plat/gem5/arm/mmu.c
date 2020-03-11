@@ -6,7 +6,7 @@
 
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
 extern unsigned long uk_so_wl_text_spare_vm_begin;
-unsigned long *plat_mmu_sparevm_l3_table;
+extern unsigned long *plat_mmu_sparevm_l3_table;
 #endif
 
 // This is the very end of the memory
@@ -224,8 +224,12 @@ void plat_mmu_set_access_permissions(unsigned long address,
 
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE
+	    && address < PLAT_MMU_VTEXT_BASE + 2 * uk_app_text_size
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
 	    && address < PLAT_MMU_VSTACK_BASE
+#endif
+#ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
+	    && address < CONFIG_SPARE_VM_BASE
 #endif
 	) {
 		if ((address - vm_offset) < uk_app_text_size) {
@@ -271,7 +275,8 @@ void plat_mmu_set_access_permissions(unsigned long address,
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
 	extern unsigned long uk_so_wl_text_spare_vm_begin;
 	extern unsigned long uk_app_text_size;
-	if (address >= uk_so_wl_text_spare_vm_begin) {
+	if (address >= uk_so_wl_text_spare_vm_begin
+	    && address < uk_so_wl_text_spare_vm_begin + 2 * uk_app_text_size) {
 		if ((address - vm_offset) < uk_app_text_size) {
 			address += uk_app_text_size;
 		} else {
@@ -294,6 +299,7 @@ void plat_mmu_set_access_permissions(unsigned long address,
 
 unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 {
+	// printf("RM 0x%lx ", address);
 	// Determine L3 Table begin
 	unsigned long *l3_table =
 	    (unsigned long *)(((unsigned long)&_end) + L3_TABLE_OFFSET);
@@ -303,18 +309,21 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE) {
+		// printf("T");
 		l3_table = plat_mmu_text_l3_table;
 		vm_offset = PLAT_MMU_VTEXT_BASE;
 	}
 #endif
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
 	if (address >= PLAT_MMU_VSTACK_BASE) {
+		printf("S");
 		l3_table = plat_mmu_stack_l3_table;
 		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
 #endif
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
 	if (address >= uk_so_wl_text_spare_vm_begin) {
+		// printf("V");
 		l3_table = plat_mmu_sparevm_l3_table;
 		vm_offset = uk_so_wl_text_spare_vm_begin & ~(0xFFF);
 	}
@@ -323,10 +332,12 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 	// Load the address
 	unsigned long target_pm_page =
 	    l3_table[(address - vm_offset) >> 12] & 0xFFFFFFFFF000;
+	// printf(" -> 0x%lx\n", target_pm_page);
 	return target_pm_page;
 }
 void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 {
+	// printf("SM 0x%lx --> 0x%lx ", address, pm_map);
 	// printf("Mapping 0x%lx to 0x%lx\n", address, pm_map);
 	// Determine L3 Table begin
 	unsigned long *l3_table =
@@ -337,18 +348,21 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE) {
+		// printf("T");
 		l3_table = plat_mmu_text_l3_table;
 		vm_offset = PLAT_MMU_VTEXT_BASE;
 	}
 #endif
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
 	if (address >= PLAT_MMU_VSTACK_BASE) {
+		// printf("S");
 		l3_table = plat_mmu_stack_l3_table;
 		vm_offset = PLAT_MMU_VSTACK_BASE;
 	}
 #endif
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
 	if (address >= uk_so_wl_text_spare_vm_begin) {
+		// printf("V");
 		l3_table = plat_mmu_sparevm_l3_table;
 		vm_offset = uk_so_wl_text_spare_vm_begin & ~(0xFFF);
 	}
@@ -363,17 +377,20 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE
+	    && address < PLAT_MMU_VTEXT_BASE + 2 * uk_app_text_size
 #ifdef CONFIG_SEPARATE_STACK_PAGETABLES
 	    && address < PLAT_MMU_VSTACK_BASE
 #endif
+#ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
+	    && address < CONFIG_SPARE_VM_BASE
+#endif
 	) {
+		// printf("_T");
 		if ((address - vm_offset) < uk_app_text_size) {
 			address += uk_app_text_size;
 		} else {
 			address -= uk_app_text_size;
 		}
-		// printf("Is a text page, therefore also mapping 0x%lx\n",
-		//    address);
 		// Load the address
 		target_page = l3_table[(address - vm_offset) >> 12];
 		// Modify the address
@@ -388,6 +405,7 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	    && address < CONFIG_SPARE_VM_BASE
 #endif
 	) {
+		printf("_S");
 		if ((address - vm_offset) < CONFIG_APPLICATION_STACK_SIZE) {
 			address += CONFIG_APPLICATION_STACK_SIZE;
 		} else {
@@ -406,14 +424,14 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
 	extern unsigned long uk_so_wl_text_spare_vm_begin;
 	extern unsigned long uk_app_text_size;
-	if (address >= uk_so_wl_text_spare_vm_begin) {
+	if (address >= uk_so_wl_text_spare_vm_begin
+	    && address < uk_so_wl_text_spare_vm_begin + 2 * uk_app_text_size) {
+		printf("_V");
 		if ((address - vm_offset) < uk_app_text_size) {
 			address += uk_app_text_size;
 		} else {
 			address -= uk_app_text_size;
 		}
-		// printf("Is a stack page, therefore also mapping 0x%lx\n",
-		//    address);
 		// Load the address
 		target_page = l3_table[(address - vm_offset) >> 12];
 		// Modify the address
@@ -422,5 +440,6 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 		l3_table[(address - vm_offset) >> 12] = target_page;
 	}
 #endif
+	// printf("\n");
 	plat_mmu_flush_tlb();
 }
