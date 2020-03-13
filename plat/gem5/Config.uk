@@ -39,6 +39,16 @@ config FORWARD_DEBUG_BREAKPOINT
        default n
        depends on ARCH_ARM_64
 
+config FORWARD_INSTRUCTION_ABORT
+       bool "Forwards the instruction aborts to a logic specific handler instead of crashing the system"
+       default n
+       depends on ARCH_ARM_64
+
+config FORWARD_DATA_ABORT
+       bool "Forwards the data aborts to a logic specific handler instead of crashing the system"
+       default n
+       depends on ARCH_ARM_64
+
 config SEPARATE_CODE_LINKING
        bool "Adds special sections to the linked binary, which contain the applications text, data/bss and stack"
        default y
