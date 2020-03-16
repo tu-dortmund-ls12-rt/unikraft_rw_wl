@@ -117,6 +117,20 @@ void trap_el0_sync(struct __regs *regs, uint64_t far)
 		}
 	}
 #endif
+#ifdef CONFIG_FORWARD_DATA_ABORT
+	asm volatile("mrs %0, esr_el1" : "=r"(esr_el1));
+	// Check for data abort
+	if ((esr_el1 & 0xFC000000) == 0x90000000) {
+		// Check if it was a translation fault
+		if ((esr_el1 & 0x4) == 0x4) {
+			extern void uk_upper_level_data_abort_handler(
+			    unsigned long *register_stack);
+			uk_upper_level_data_abort_handler(
+			    (unsigned long *)regs);
+			return;
+		}
+	}
+#endif
 #ifdef CONFIG_FORWARD_DEBUG_BREAKPOINT
 	// Check the exception syndrome register first, to figure out if there
 	// was a breakpoint instruction
