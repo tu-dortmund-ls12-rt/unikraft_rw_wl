@@ -41,4 +41,11 @@ config LIBOFW
        depends on ARCH_ARM_64
        select LIBFDT
 
+config FLOAT_POINT
+	bool "arm64 floating point support in application"
+	default n
+	depends on ARCH_ARM_64
+	help
+		Enable support FPU usage in application
+
 endif

@@ -51,6 +51,7 @@
 #include <config.h>
 
 static const char * const arch_timer_list[] = {
+	"arm,cortex-a15-timer",
 	"arm,armv8-timer",
 	"arm,armv7-timer",
 	NULL

@@ -3,9 +3,9 @@
 # we should not enable the FP & SIMD access for kernel. As GCC will
 # the FP & SIMD registers to pass parameters, we use -mgeneral-regs-only
 # flag to force GCC to use generic registers
-ASFLAGS  += -D__ARM_64__ -mgeneral-regs-only
-CFLAGS   += -D__ARM_64__ -fms-extensions -mgeneral-regs-only
-CXXFLAGS += -D__ARM_64__ -fms-extensions -mgeneral-regs-only
+ASFLAGS  += -D__ARM_64__
+CFLAGS   += -D__ARM_64__ -fms-extensions
+CXXFLAGS += -D__ARM_64__ -fms-extensions 
 
 CINCLUDES   += -I$(CONFIG_UK_BASE)/arch/arm/arm64/include
 ASINCLUDES  += -I$(CONFIG_UK_BASE)/arch/arm/arm64/include
@@ -30,6 +30,16 @@ ifeq ($(CONFIG_MARCH_ARM64_CORTEXA53),y)
 $(call error_if_gcc_version_lt,4,9)
 CFLAGS-$(call gcc_version_ge,4,9)	+= -march=armv8-a -mcpu=cortex-a53 -mtune=cortex-a53
 CXXFLAGS-$(call gcc_version_ge,4,9)	+= -march=armv8-a -mcpu=cortex-a53 -mtune=cortex-a53
+endif
+
+ifeq ($(CONFIG_ARM64_ERRATUM_835769),y)
+CFLAGS-$(call gcc_version_ge,4,9)	+= -mfix-cortex-a53-835769
+CXXFLAGS-$(call gcc_version_ge,4,9)	+= -mfix-cortex-a53-835769
+endif
+
+ifeq ($(CONFIG_ARM64_ERRATUM_843419),y)
+CFLAGS-$(call gcc_version_ge,4,9)	+= -mfix-cortex-a53-843419
+CXXFLAGS-$(call gcc_version_ge,4,9)	+= -mfix-cortex-a53-843419
 endif
 
 # GCC support -mcpu=cortex-a57 for arm64 from 4.9

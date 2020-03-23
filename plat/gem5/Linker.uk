@@ -1,5 +1,6 @@
 ifeq (arm64,$(CONFIG_UK_ARCH))
 GEM5_LDFLAGS-y	 += -Wl,-m,aarch64elf -static -nostdlib -mstrict-align -nostartfiles -N
+KVM_LINK_LIBGCC_FLAG	:= -lgcc
 endif
 
 
@@ -24,6 +25,7 @@ $(GEM5_DEBUG_IMAGE): $(GEM5_ALIBS) $(GEM5_ALIBS-y) $(GEM5_OLIBS) $(GEM5_OLIBS-y)
 			-Wl$(comma)--start-group \
 			$(GEM5_ALIBS) $(GEM5_ALIBS-y) \
 			$(UK_ALIBS) $(UK_ALIBS-y) \
+			$(KVM_LINK_LIBGCC_FLAG) \
 			-Wl$(comma)--end-group \
 			-o $(GEM5_IMAGE).ld.o)
 	$(call build_cmd,OBJCOPY,,$(GEM5_IMAGE).o,\

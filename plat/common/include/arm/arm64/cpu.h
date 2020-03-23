@@ -42,62 +42,66 @@
 #include <uk/assert.h>
 
 /* Define macros to access IO registers */
-#define __IOREG_READ(bits) \
-static inline uint##bits##_t \
-	ioreg_read##bits(const volatile uint##bits##_t *addr) \
-		{ return *addr; }
+#define __IOREG_READ(bits)                                                     \
+	static inline uint##bits##_t ioreg_read##bits(                         \
+	    const volatile uint##bits##_t *addr)                               \
+	{                                                                      \
+		return *addr;                                                  \
+	}
 
-#define __IOREG_WRITE(bits) \
-static inline void \
-	ioreg_write##bits(volatile uint##bits##_t *addr, \
-						uint##bits##_t value) \
-		{ *addr = value; }
+#define __IOREG_WRITE(bits)                                                    \
+	static inline void ioreg_write##bits(volatile uint##bits##_t *addr,    \
+					     uint##bits##_t value)             \
+	{                                                                      \
+		*addr = value;                                                 \
+	}
 
+#define __IOREG_READ_ALL()                                                     \
+	__IOREG_READ(8)                                                        \
+	__IOREG_READ(16)                                                       \
+	__IOREG_READ(32)                                                       \
+	__IOREG_READ(64)
 
-#define __IOREG_READ_ALL() __IOREG_READ(8)  \
-			   __IOREG_READ(16) \
-			   __IOREG_READ(32) \
-			   __IOREG_READ(64) \
-
-#define __IOREG_WRITE_ALL()	__IOREG_WRITE(8)  \
-			   __IOREG_WRITE(16) \
-			   __IOREG_WRITE(32) \
-			   __IOREG_WRITE(64) \
+#define __IOREG_WRITE_ALL()                                                    \
+	__IOREG_WRITE(8)                                                       \
+	__IOREG_WRITE(16)                                                      \
+	__IOREG_WRITE(32)                                                      \
+	__IOREG_WRITE(64)
 
 __IOREG_READ_ALL()
 __IOREG_WRITE_ALL()
 
-static inline void _init_cpufeatures(void)
-{
-}
+static inline void _init_cpufeatures(void) {}
 
 /* Define compatibility IO macros */
-#define outb(addr, v)   UK_BUG()
-#define outw(addr, v)   UK_BUG()
-#define inb(addr)       UK_BUG()
+#define outb(addr, v) UK_BUG()
+#define outw(addr, v) UK_BUG()
+#define inb(addr) UK_BUG()
 
 /* Macros to access system registers */
-#define SYSREG_READ(reg) \
-({	uint64_t val; \
-	__asm__ __volatile__("mrs %0, " __STRINGIFY(reg) \
-			: "=r" (val)); \
-	val; \
-})
+#define SYSREG_READ(reg)                                                       \
+	({                                                                     \
+		uint64_t val;                                                  \
+		__asm__ __volatile__("mrs %0, " __STRINGIFY(reg) : "=r"(val)); \
+		val;                                                           \
+	})
 
-#define SYSREG_WRITE(reg, val) \
-	__asm__ __volatile__("msr " __STRINGIFY(reg) ", %0" \
-			: : "r" ((uint64_t)(val)))
+#define SYSREG_WRITE(reg, val)                                                 \
+	__asm__ __volatile__("msr " __STRINGIFY(reg) ", %0"                    \
+			     :                                                 \
+			     : "r"((uint64_t)(val)))
 
-#define SYSREG_READ32(reg) \
-({	uint32_t val; \
-	__asm__ __volatile__("mrs %0, " __STRINGIFY(reg) \
-			: "=r" (val)); \
-	val; \
-})
+#define SYSREG_READ32(reg)                                                     \
+	({                                                                     \
+		uint32_t val;                                                  \
+		__asm__ __volatile__("mrs %0, " __STRINGIFY(reg) : "=r"(val)); \
+		val;                                                           \
+	})
 
-#define SYSREG_WRITE32(reg, val) \
-	__asm__ __volatile__("msr " __STRINGIFY(reg) ", %0" \
-			: : "r" ((uint32_t)(val)))
+#define SYSREG_WRITE32(reg, val)                                               \
+	__asm__ __volatile__("msr " __STRINGIFY(reg) ", %0"                    \
+			     :                                                 \
+			     : "r"((uint32_t)(val)))
 
 #define SYSREG_READ64(reg) SYSREG_READ(reg)
 #define SYSREG_WRITE64(reg, val) SYSREG_WRITE(reg, val)
@@ -116,21 +120,57 @@ void halt(void);
 void reset(void);
 void system_off(void);
 
-static inline void save_extregs(struct sw_ctx *ctx __unused)
+#ifdef CONFIG_FLOAT_POINT
+struct user_fpsimd_state {
+	__u64 vregs[32 * 2];
+	__u32 fpsr;
+	__u32 fpcr;
+	__u32 __reserved[2];
+};
+
+extern void fpsimd_save_state(uintptr_t ptr);
+extern void fpsimd_restore_state(uintptr_t ptr);
+
+static inline void save_extregs(struct sw_ctx *ctx)
 {
+	fpsimd_save_state(ctx->extregs);
 }
 
-static inline void restore_extregs(struct sw_ctx *ctx __unused)
+static inline void restore_extregs(struct sw_ctx *ctx)
 {
+	fpsimd_restore_state(ctx->extregs);
 }
 
 static inline struct sw_ctx *arch_alloc_sw_ctx(struct uk_alloc *allocator)
 {
 	struct sw_ctx *ctx;
 
-	ctx = uk_malloc(allocator, sizeof(struct sw_ctx));
+	ctx = (struct sw_ctx *)uk_malloc(allocator, sizeof(struct sw_ctx));
+	if (ctx)
+		ctx->extregs = (uintptr_t)uk_malloc(
+		    allocator, sizeof(struct user_fpsimd_state));
+
+	uk_pr_debug("Allocating %lu bytes for sw ctx at %p, extregs at %p\n",
+		    sizeof(struct sw_ctx), ctx, (void *)ctx->extregs);
+
+	return ctx;
+}
+
+static inline void arch_init_extregs(struct sw_ctx *ctx __unused) {}
+
+#else  /* !CONFIG_FLOAT_POINT */
+
+static inline void save_extregs(struct sw_ctx *ctx __unused) {}
+
+static inline void restore_extregs(struct sw_ctx *ctx __unused) {}
+
+static inline struct sw_ctx *arch_alloc_sw_ctx(struct uk_alloc *allocator)
+{
+	struct sw_ctx *ctx;
+
+	ctx = (struct sw_ctx *)uk_malloc(allocator, sizeof(struct sw_ctx));
 	uk_pr_debug("Allocating %lu bytes for sw ctx at %p\n",
-		   sizeof(struct sw_ctx), ctx);
+		    sizeof(struct sw_ctx), ctx);
 
 	return ctx;
 }
@@ -139,5 +179,5 @@ static inline void arch_init_extregs(struct sw_ctx *ctx)
 {
 	ctx->extregs = (uintptr_t)ctx + sizeof(struct sw_ctx);
 }
-
+#endif /* CONFIG_FLOAT_POINT */
 #endif /* __PLAT_COMMON_ARM64_CPU_H__ */

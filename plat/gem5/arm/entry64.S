@@ -37,6 +37,7 @@
 #include <gem5-arm/mm.h>
 #include <arm/cpu_defs.h>
 #include <sections.h>
+#include <uk/config.h>
 
 .global page_table_size
 
@@ -50,6 +51,14 @@
 /*Place the entire bootcode in a special section, as gem5 requires it to be at the very beginning of the main memory. This makes linking easier*/
 .section .gem5_arm_bootcode
 _libgem5plat_entry:
+	#ifdef CONFIG_FLOAT_POINT
+	/* Enable fp/simd support */
+	ldr        x0, =(3 << 20)
+	msr        cpacr_el1, x0
+	isb
+	#endif
+
+
 	/* Calculate the image size */
 	ldr x25, =_start_bin
 	ldr x26, =_end
