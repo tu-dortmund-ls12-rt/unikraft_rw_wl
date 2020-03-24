@@ -368,8 +368,14 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 	}
 #endif
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
+	// We also have to maintain the identic virtual mapping, because
+	// this is used for .text modifications
+	unsigned long *identic_l3_table =
+	    (unsigned long *)(((unsigned long)&_end) + L3_TABLE_OFFSET);
+	unsigned long identic_vm_offset = (unsigned long)(&_start_bin);
 	if (address >= uk_so_wl_text_spare_vm_begin) {
 		// printf("V");
+
 		l3_table = plat_mmu_sparevm_l3_table;
 		vm_offset = uk_so_wl_text_spare_vm_begin & ~(0x1FFFFF);
 	}
@@ -431,15 +437,19 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 #endif
 #ifdef CONFIG_SOFTONLYWEARLEVELINGLIB_DO_TEXT_PAGE_CONSITENCY
 	extern unsigned long uk_so_wl_text_spare_vm_begin;
+	extern unsigned long uk_so_wl_text_spare_vm_size;
+	extern unsigned long uk_app_base;
 	extern unsigned long uk_app_text_size;
 	if (address >= uk_so_wl_text_spare_vm_begin
 	    && address < uk_so_wl_text_spare_vm_begin + 2 * uk_app_text_size) {
+		unsigned long base_addr = address;
 		// printf("_V");
 		if ((address - uk_so_wl_text_spare_vm_begin)
 		    < uk_app_text_size) {
 			address += uk_app_text_size;
 		} else {
 			address -= uk_app_text_size;
+			base_addr = address;
 		}
 		// Load the address
 		// printf("Also setting 0x%lx\n",address);
@@ -449,6 +459,24 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 		target_page &= ~0xFFFFFFFFF000;
 		target_page |= (pm_map & 0xFFFFFFFFF000);
 		l3_table[(address - vm_offset) >> 12] = target_page;
+
+		// Also adjust the identic mapping
+		unsigned long plain_instr =
+		    ((base_addr - CONFIG_SPARE_VM_BASE)
+		     % (uk_so_wl_text_spare_vm_size * 0x1000))
+		    + uk_app_base + 0x1000;
+
+		// printf("Mapping to 0x%lx for 0x%lx, which is based at 0x%lx, "
+		//        "therefore "
+		//        "mapping identic 0x%lx\n",
+		//        pm_map, address, base_addr, plain_instr);
+
+		target_page =
+		    identic_l3_table[(plain_instr - identic_vm_offset) >> 12];
+		target_page &= ~0xFFFFFFFFF000;
+		target_page |= (pm_map & 0xFFFFFFFFF000);
+		identic_l3_table[(plain_instr - identic_vm_offset) >> 12] =
+		    target_page;
 	}
 #endif
 	// printf("\n");
