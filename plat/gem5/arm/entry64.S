@@ -100,7 +100,7 @@ _libgem5plat_entry:
 	/* Disable the MMU and D-Cache. */
 	dsb sy
 	mrs x2, sctlr_el1
-	mov x3, #SCTLR_M|SCTLR_C
+	mov x3, #SCTLR_M|SCTLR_C|SCTLR_I
 	bic x2, x2, x3
 	msr sctlr_el1, x2
 	isb
@@ -119,6 +119,7 @@ _libgem5plat_entry:
 	cmp x26, x27
 	b.lo 1b
 
+	adrp x27, __NVM_KERNEL_STACK_END
 	mov sp, x27
 
 	/* Set the context id */

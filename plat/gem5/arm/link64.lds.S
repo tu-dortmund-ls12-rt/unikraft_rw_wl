@@ -54,14 +54,13 @@ ENTRY(_libgem5plat_entry)
  */
 SECTIONS {
 	. = RAM_BASE_ADDR;
-
 	_start_bin = .;
+	_text = .;
 
 	/* Code */
-	_text = .;
+__NVM_KERNEL_TEXT_BEGIN = .;
 	.text :
 	{
-		/*Place the bootcode as the very first thing, as gem5 starts to execute here */
 		*(.gem5_arm_bootcode)
 		*(.text)
 		*(.text.*)
@@ -84,6 +83,7 @@ SECTIONS {
 	CTORTAB_SECTION
 
 	INITTAB_SECTION
+
 
 	/* Read-only data */
 	. = ALIGN(__PAGE_SIZE);
@@ -118,6 +118,9 @@ SECTIONS {
 
 	TLS_SECTIONS
 
+__NVM_KERNEL_TEXT_END = .;
+__NVM_KERNEL_DATA_BEGIN = .;
+
 	/* Read-write data that is initialized explicitly in code */
 	_data = .;
 	.data :
@@ -142,6 +145,17 @@ SECTIONS {
 	 * the boot is done.
 	 */
 	}
+
+__NVM_KERNEL_DATA_END = .;
+__NVM_KERNEL_STACK_BEGIN = .;
+
+	.stack :
+	{
+		. += 0x8000;
+		. = ALIGN(__PAGE_SIZE);
+	}
+
+__NVM_KERNEL_STACK_END = .;
 
 	_end = .;
 

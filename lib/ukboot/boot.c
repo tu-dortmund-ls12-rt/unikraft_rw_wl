@@ -258,6 +258,7 @@ void ukplat_entry(int argc, char *argv[])
 
 #if CONFIG_LIBUKSCHED
 	main_thread = uk_thread_create("main", main_thread_func, &tma);
+	printf("Created main thread with stack: 0x%lx\n",main_thread->stack);
 	if (unlikely(!main_thread))
 		UK_CRASH("Could not create main thread\n");
 	uk_sched_start(s);

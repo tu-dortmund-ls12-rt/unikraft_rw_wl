@@ -17,6 +17,7 @@ GEM5_LD_SCRIPT_FLAGS += $(addprefix -Wl$(comma)-T$(comma),\
 
 $(GEM5_DEBUG_IMAGE): $(GEM5_ALIBS) $(GEM5_ALIBS-y) $(GEM5_OLIBS) $(GEM5_OLIBS-y) \
 		    $(UK_ALIBS) $(UK_ALIBS-y) $(UK_OLIBS) $(UK_OLIBS-y)
+	#@echo "$(GEM5_ALIBS) $(GEM5_ALIBS-y) $(GEM5_OLIBS) $(GEM5_OLIBS-y) $(UK_ALIBS) $(UK_ALIBS-y) $(UK_OLIBS) $(UK_OLIBS-y)"
 	$(call build_cmd,LD,,$(GEM5_IMAGE).ld.o,\
 	       $(LD) -r $(LIBLDFLAGS) $(LIBLDFLAGS-y) \
 			$(GEM5_LDFLAGS) $(GEM5_LDFLAGS-y) \

@@ -146,6 +146,7 @@ static void *create_stack(struct uk_alloc *allocator)
 		uk_pr_warn("Error allocating thread stack.");
 		return NULL;
 	}
+	printf("Created thread stack at 0x%lx\n",stack);
 
 	return stack;
 }
