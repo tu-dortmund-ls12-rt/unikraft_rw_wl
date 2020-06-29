@@ -234,7 +234,7 @@ void ukplat_entry(int argc, char *argv[])
 			UK_CRASH("Could not set the platform memory allocator\n");
 	}
 #endif
-
+uk_pr_info("Added memory\n");
 #if CONFIG_LIBUKALLOC
 	uk_pr_info("Initialize IRQ subsystem...\n");
 	rc = ukplat_irq_init(a);

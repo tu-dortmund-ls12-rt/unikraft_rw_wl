@@ -10,13 +10,13 @@ ASINCLUDES  += -nostdinc -nostdlib -I$(CONFIG_UK_BASE)/include
 CFLAGS      += -U __linux__ -U __FreeBSD__ -U __sun__
 CFLAGS      += -fno-stack-protector -fno-omit-frame-pointer -fno-tree-sra
 CFLAGS      += -Wall -Wextra
-CFLAGS		+= -mno-outline-atomics
+CFLAGS		+= -mno-outline-atomics -fno-builtin
 CINCLUDES   += -nostdinc -nostdlib -I$(CONFIG_UK_BASE)/include
 
 CXXFLAGS    += -U __linux__ -U __FreeBSD__ -U __sun__
 CXXFLAGS    += -fno-stack-protector -fno-omit-frame-pointer -fno-tree-sra
 CXXFLAGS    += -Wall -Wextra
-CXXFLAGS		+= -mno-outline-atomics
+CXXFLAGS		+= -mno-outline-atomics -fno-builtin
 CXXINCLUDES += -nostdinc -nostdlib -I$(CONFIG_UK_BASE)/include
 
 GOCFLAGS    += -U __linux__ -U __FreeBSD__ -U __sun__

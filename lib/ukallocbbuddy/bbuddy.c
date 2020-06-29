@@ -92,9 +92,9 @@ struct uk_bbpalloc {
  *  *_idx == Index into `mm_alloc_bitmap' array.
  *  *_off == Bit offset within an element of the `mm_alloc_bitmap' array.
  */
-#define BITS_PER_BYTE       8
-#define BYTES_PER_MAPWORD   (sizeof(unsigned long))
-#define PAGES_PER_MAPWORD   (BYTES_PER_MAPWORD * BITS_PER_BYTE)
+#define BITS_PER_BYTE 8
+#define BYTES_PER_MAPWORD (sizeof(unsigned long))
+#define PAGES_PER_MAPWORD (BYTES_PER_MAPWORD * BITS_PER_BYTE)
 
 static inline struct uk_bbpalloc_memr *map_get_memr(struct uk_bbpalloc *b,
 						    unsigned long page_va)
@@ -108,8 +108,8 @@ static inline struct uk_bbpalloc_memr *map_get_memr(struct uk_bbpalloc *b,
 	 */
 	for (memr = b->memr_head; memr != NULL; memr = memr->next) {
 		if ((page_va >= memr->first_page)
-		    && (page_va < (memr->first_page +
-		    (memr->nr_pages << __PAGE_SHIFT))))
+		    && (page_va < (memr->first_page
+				   + (memr->nr_pages << __PAGE_SHIFT))))
 			return memr;
 	}
 
@@ -120,7 +120,7 @@ static inline struct uk_bbpalloc_memr *map_get_memr(struct uk_bbpalloc *b,
 }
 
 static inline unsigned long allocated_in_map(struct uk_bbpalloc *b,
-				   unsigned long page_va)
+					     unsigned long page_va)
 {
 	struct uk_bbpalloc_memr *memr = map_get_memr(b, page_va);
 	unsigned long page_idx;
@@ -220,7 +220,7 @@ static ssize_t bbuddy_availmem(struct uk_alloc *a)
 
 	UK_ASSERT(a != NULL);
 	b = (struct uk_bbpalloc *)&a->priv;
-	return (ssize_t) b->nr_free_pages << __PAGE_SHIFT;
+	return (ssize_t)b->nr_free_pages << __PAGE_SHIFT;
 }
 #endif
 
@@ -257,7 +257,8 @@ static void *bbuddy_palloc(struct uk_alloc *a, size_t order)
 		spare_ch = (chunk_head_t *)((char *)alloc_ch
 					    + (1UL << (i + __PAGE_SHIFT)));
 		spare_ct = (chunk_tail_t *)((char *)spare_ch
-					    + (1UL << (i + __PAGE_SHIFT))) - 1;
+					    + (1UL << (i + __PAGE_SHIFT)))
+			   - 1;
 
 		/* Create new header for spare chunk. */
 		spare_ch->level = i;
@@ -274,7 +275,9 @@ static void *bbuddy_palloc(struct uk_alloc *a, size_t order)
 	return ((void *)alloc_ch);
 
 no_memory:
-	uk_pr_warn("%"__PRIuptr": Cannot handle palloc request of order %"__PRIsz": Out of memory\n",
+	uk_pr_warn("%"__PRIuptr
+		   ": Cannot handle palloc request of order %"__PRIsz
+		   ": Out of memory\n",
 		   (uintptr_t)a, order);
 	errno = ENOMEM;
 	return NULL;
@@ -298,8 +301,8 @@ static void bbuddy_pfree(struct uk_alloc *a, void *obj, size_t order)
 
 	/* Create free chunk */
 	freed_ch = (chunk_head_t *)obj;
-	freed_ct = (chunk_tail_t *)((char *)obj
-				    + (1UL << (order + __PAGE_SHIFT))) - 1;
+	freed_ct =
+	    (chunk_tail_t *)((char *)obj + (1UL << (order + __PAGE_SHIFT))) - 1;
 
 	/* Now, possibly we can conseal chunks together */
 	while (order < FREELIST_SIZE) {
@@ -342,6 +345,7 @@ static void bbuddy_pfree(struct uk_alloc *a, void *obj, size_t order)
 
 static int bbuddy_addmem(struct uk_alloc *a, void *base, size_t len)
 {
+	uk_pr_info("Adding memory %p (%d)\n",base,len);
 	struct uk_bbpalloc *b;
 	struct uk_bbpalloc_memr *memr;
 	size_t memr_size;
@@ -357,9 +361,12 @@ static int bbuddy_addmem(struct uk_alloc *a, void *base, size_t len)
 	min = round_pgup((uintptr_t)base);
 	max = round_pgdown((uintptr_t)base + (uintptr_t)len);
 	if (max < min) {
-		uk_pr_err("%"__PRIuptr": Failed to add memory region %"__PRIuptr"-%"__PRIuptr": Invalid range after applying page alignments\n",
-			  (uintptr_t) a, (uintptr_t) base,
-			  (uintptr_t) base + (uintptr_t) len);
+		uk_pr_err("%"__PRIuptr
+			  ": Failed to add memory region %"__PRIuptr
+			  "-%"__PRIuptr
+			  ": Invalid range after applying page alignments\n",
+			  (uintptr_t)a, (uintptr_t)base,
+			  (uintptr_t)base + (uintptr_t)len);
 		return -EINVAL;
 	}
 
@@ -368,11 +375,14 @@ static int bbuddy_addmem(struct uk_alloc *a, void *base, size_t len)
 	/* We should have at least one page for bitmap tracking
 	 * and one page for data.
 	 */
-	if (range < round_pgup(sizeof(*memr) + BYTES_PER_MAPWORD) +
-			__PAGE_SIZE) {
-		uk_pr_err("%"__PRIuptr": Failed to add memory region %"__PRIuptr"-%"__PRIuptr": Not enough space after applying page alignments\n",
-			  (uintptr_t) a, (uintptr_t) base,
-			  (uintptr_t) base + (uintptr_t) len);
+	if (range
+	    < round_pgup(sizeof(*memr) + BYTES_PER_MAPWORD) + __PAGE_SIZE) {
+		uk_pr_err("%"__PRIuptr
+			  ": Failed to add memory region %"__PRIuptr
+			  "-%"__PRIuptr
+			  ": Not enough space after applying page alignments\n",
+			  (uintptr_t)a, (uintptr_t)base,
+			  (uintptr_t)base + (uintptr_t)len);
 		return -EINVAL;
 	}
 
@@ -386,12 +396,11 @@ static int bbuddy_addmem(struct uk_alloc *a, void *base, size_t len)
 	 * where: bitmap_size = page_num / BITS_PER_BYTE
 	 *
 	 */
-	memr->nr_pages =
-		BITS_PER_BYTE * (range - sizeof(*memr)) /
-		(BITS_PER_BYTE * __PAGE_SIZE + 1);
-	memr->mm_alloc_bitmap = (unsigned long *) (min + sizeof(*memr));
-	memr_size = round_pgup(sizeof(*memr) +
-		DIV_ROUND_UP(memr->nr_pages, BITS_PER_BYTE));
+	memr->nr_pages = BITS_PER_BYTE * (range - sizeof(*memr))
+			 / (BITS_PER_BYTE * __PAGE_SIZE + 1);
+	memr->mm_alloc_bitmap = (unsigned long *)(min + sizeof(*memr));
+	memr_size = round_pgup(sizeof(*memr)
+			       + DIV_ROUND_UP(memr->nr_pages, BITS_PER_BYTE));
 	memr->mm_alloc_bitmap_size = memr_size - sizeof(*memr);
 
 	min += memr_size;
@@ -406,12 +415,12 @@ static int bbuddy_addmem(struct uk_alloc *a, void *base, size_t len)
 	b->memr_head = memr;
 
 	/* All allocated by default. */
-	memset(memr->mm_alloc_bitmap, (unsigned char) ~0,
-			memr->mm_alloc_bitmap_size);
+	memset(memr->mm_alloc_bitmap, (unsigned char)~0,
+	       memr->mm_alloc_bitmap_size);
+
 
 	/* free up the memory we've been given to play with */
 	map_free(b, min, memr->nr_pages);
-
 	count = 0;
 	while (range != 0) {
 		/*
@@ -422,7 +431,10 @@ static int bbuddy_addmem(struct uk_alloc *a, void *base, size_t len)
 			if (min & (1UL << i))
 				break;
 
-		uk_pr_debug("%"__PRIuptr": Add allocate unit %"__PRIuptr" - %"__PRIuptr" (order %lu)\n",
+		uk_pr_debug("%"__PRIuptr
+			    ": Add allocate unit %"__PRIuptr
+			    " - %"__PRIuptr
+			    " (order %lu)\n",
 			    (uintptr_t)a, min, (uintptr_t)(min + (1UL << i)),
 			    (i - __PAGE_SHIFT));
 
@@ -460,13 +472,16 @@ struct uk_alloc *uk_allocbbuddy_init(void *base, size_t len)
 
 	/* enough space for allocator available? */
 	if (min + metalen > max) {
-		uk_pr_err("Not enough space for allocator: %"__PRIsz" B required but only %"__PRIuptr" B usable\n",
+		uk_pr_err("Not enough space for allocator: %"__PRIsz
+			  " B required but only %"__PRIuptr
+			  " B usable\n",
 			  metalen, (max - min));
 		return NULL;
 	}
 
 	a = (struct uk_alloc *)min;
-	uk_pr_info("Initialize binary buddy allocator %"__PRIuptr"\n",
+	uk_pr_info("Initialize binary buddy allocator %"__PRIuptr
+		   "\n",
 		   (uintptr_t)a);
 	min += metalen;
 	memset(a, 0, metalen);
@@ -480,12 +495,10 @@ struct uk_alloc *uk_allocbbuddy_init(void *base, size_t len)
 	b->memr_head = NULL;
 
 	/* initialize and register allocator interface */
-	uk_alloc_init_palloc(a, bbuddy_palloc, bbuddy_pfree,
-			     bbuddy_addmem);
+	uk_alloc_init_palloc(a, bbuddy_palloc, bbuddy_pfree, bbuddy_addmem);
 #if CONFIG_LIBUKALLOC_IFSTATS
 	a->availmem = bbuddy_availmem;
 #endif
-
 	/* add left memory - ignore return value */
 	bbuddy_addmem(a, (void *)(min + metalen),
 		      (size_t)(max - min - metalen));
