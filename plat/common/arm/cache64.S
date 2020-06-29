@@ -75,3 +75,40 @@ ENTRY(clean_and_invalidate_dcache_range)
 
 	ret
 END(clean_and_invalidate_dcache_range)
+
+ENTRY(clean_and_invalidate_caches)
+	/* Get information about the caches from CTR_EL0 */
+	/* Deactivate Cache */
+        mrs x0, sctlr_el1
+        bic x0,x0,#(0x1 << 2)
+        bic x0,x0,#(0x1 << 12)
+        msr sctlr_el1, x0
+        /* Invalidate Cache Content */
+        mov x0, #0x0
+        msr csselr_el1, x0
+        mrs x4, ccsidr_el1
+        and x1, x4, #0x7
+        ldr x3, =0x7FFF
+        and x2,x3,x4,lsr #13
+        ldr x3, =0x3FF
+        and x3,x3,x4,lsr #3
+        clz w4,w3
+        mov x5, #0
+    way_loop:
+        mov x6, #0
+    set_loop:
+        lsl x7,x5,x4
+        orr x7,x0,x7
+        lsl x8,x6,x1
+        orr x7,x7,x8
+        dc cisw, x7
+        add x6,x6, #1
+        cmp x6,x2
+        ble set_loop
+        add x5, x5, #1
+        cmp x5, x3
+        ble way_loop
+
+
+	ret
+END(clean_and_invalidate_caches)

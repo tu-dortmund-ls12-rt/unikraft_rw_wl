@@ -79,6 +79,10 @@ config APPLICATION_STACK_SIZE
        default 0x8000
        depends on (ARCH_ARM_64)
 
+config PLAT_GEM5_ENABLE_CACHES
+       bool "Caches are enabled at boot time"
+       depends on (ARCH_ARM_64)
+
 config LIBGICV3
        bool "Arm GIC (generic interrupt controller) v3 library support"
        default y if ARCH_ARM_64

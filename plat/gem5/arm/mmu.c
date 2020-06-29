@@ -63,6 +63,8 @@ void plat_mmu_setup_stack_pages()
 	}
 
 	plat_mmu_flush_tlb();
+	extern void cache_maintenance();
+    cache_maintenance();
 }
 #endif
 
@@ -119,6 +121,8 @@ void plat_mmu_setup_text_pages()
 	}
 
 	plat_mmu_flush_tlb();
+	extern void cache_maintenance();
+    cache_maintenance();
 }
 #endif
 
@@ -301,6 +305,8 @@ void plat_mmu_set_access_permissions(unsigned long address,
 #endif
 
 	plat_mmu_flush_tlb();
+	extern void cache_maintenance();
+    cache_maintenance();
 }
 
 unsigned long plat_mmu_get_pm_mapping(unsigned long address)
@@ -340,10 +346,20 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 	    l3_table[(address - vm_offset) >> 12] & 0xFFFFFFFFF000;
 	// printf("(%d at 0x%lx) -> 0x%lx\n", ((address - vm_offset) >> 12),
 	//        l3_table, target_pm_page);
+
+	if (target_pm_page >= 0x90000000) {
+		printf("Something went wrong ith requesting page 0x%lx, found "
+		       "entry 0x%lx\n",
+		       address, target_pm_page);
+	}
 	return target_pm_page;
 }
 void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 {
+	if (pm_map >= 0x90000000) {
+		printf("Senthing seems wrong while setting 0x%lx to 0x%lx\n",
+		       address, pm_map);
+	}
 	// printf("SM 0x%lx --> 0x%lx ", address, pm_map);
 	// printf("Mapping 0x%lx to 0x%lx\n", address, pm_map);
 	// Determine L3 Table begin
@@ -466,7 +482,8 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 		     % (uk_so_wl_text_spare_vm_size * 0x1000))
 		    + uk_app_base + 0x1000;
 
-		// printf("Mapping to 0x%lx for 0x%lx, which is based at 0x%lx, "
+		// printf("Mapping to 0x%lx for 0x%lx, which is based at 0x%lx,
+		// "
 		//        "therefore "
 		//        "mapping identic 0x%lx\n",
 		//        pm_map, address, base_addr, plain_instr);
@@ -481,4 +498,6 @@ void plat_mmu_set_pm_mapping(unsigned long address, unsigned long pm_map)
 #endif
 	// printf("\n");
 	plat_mmu_flush_tlb();
+	extern void cache_maintenance();
+    cache_maintenance();
 }
