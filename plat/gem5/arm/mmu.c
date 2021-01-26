@@ -318,6 +318,7 @@ unsigned long plat_mmu_get_pm_mapping(unsigned long address)
 
 	// Determine the virtual address offset
 	unsigned long vm_offset = (unsigned long)(&_start_bin);
+	// printf("VMOS 0x%lx\n",vm_offset);
 
 #ifdef CONFIG_SEPARATE_TEXT_PAGETABLES
 	if (address >= PLAT_MMU_VTEXT_BASE) {
