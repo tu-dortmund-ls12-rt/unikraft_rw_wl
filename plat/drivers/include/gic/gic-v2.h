@@ -35,6 +35,7 @@
 #ifndef __PLAT_DRV_ARM_GIC_H__
 #define __PLAT_DRV_ARM_GIC_H__
 
+
 /*
  * Distributor registers. Unikraft only support run on non-secure
  * so we just describe non-secure registers.
@@ -85,6 +86,10 @@
 #define GICD_ISENABLER(n)	(0x0100 + 4 * ((n) >> 5))
 #define GICD_I_PER_ISENABLERn	32
 #define GICD_DEF_SGI_ISENABLERn	0xffff
+
+#define GICR_ISENABLER(n)	(0x10000+0x0100 + 4 * ((n) >> 5))
+#define GICR_I_PER_ISENABLERn	32
+#define GICR_DEF_SGI_ISENABLERn	0xffff
 
 /*
  * Interrupt Clear-Enable Registers, GICD_ICENABLERn.
@@ -373,5 +378,9 @@ void gic_handle_irq(void);
 
 /* Initialize GICv2 from device tree */
 int _dtb_init_gic(const void *fdt);
+
+uint32_t read_gicd32(uint64_t offset);
+void write_gicd32(uint64_t offset, uint32_t val);
+void write_gicr32(uint64_t offset, uint32_t val);
 
 #endif //__PLAT_DRV_ARM_GICV2_H__

@@ -65,12 +65,12 @@
 
 #define __disable_irq() \
 ({ \
-	__asm __volatile( "msr daifset, #2" : : : "memory" ); \
+	__asm __volatile( "msr daifset, #0b11" : : : "memory" ); \
 })
 
 #define __enable_irq() \
 ({ \
-	__asm __volatile( "msr daifclr, #2" : : : "memory" ); \
+	__asm __volatile( "msr daifclr, #0b11" : : : "memory" ); \
 })
 
 #define __save_flags(x) \

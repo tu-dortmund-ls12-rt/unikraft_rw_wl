@@ -138,6 +138,11 @@ void generic_timer_enable(void)
 	isb();
 }
 
+int generic_timer_get_irq_status(void)
+{
+	return (get_el0(cntv_ctl) & GT_TIMER_IRQ_STATUS);
+}
+
 static inline void generic_timer_disable(void)
 {
 	set_el0(cntv_ctl, get_el0(cntv_ctl) & ~GT_TIMER_ENABLE);
@@ -146,7 +151,7 @@ static inline void generic_timer_disable(void)
 	isb();
 }
 
-static inline void generic_timer_update_compare(uint64_t new_val)
+void generic_timer_update_compare(uint64_t new_val)
 {
 	set_el0(cntv_cval, new_val);
 

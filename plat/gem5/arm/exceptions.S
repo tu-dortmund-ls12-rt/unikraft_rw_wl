@@ -174,6 +174,14 @@ el1_irq:
 	bl trap_el1_irq
 	LEAVE_TRAP 1
 
+.align 6
+el1_fiq:
+	ENTER_TRAP 1
+	mov x0, sp
+	bl trap_el1_irq
+	#msr daifclr, #(8 | 4 | 1)
+	LEAVE_TRAP 1
+
 /* Bad Abort numbers */
 #define BAD_SYNC  0
 #define BAD_IRQ   1
@@ -225,7 +233,7 @@ ENTRY(vector_table)
 	/* Current Exception level with SP_EL1 */
 	vector_entry el1_sync		/* Synchronous EL1h       */
 	vector_entry el1_irq		/* IRQ EL1h               */
-	vector_entry el1_fiq_invalid	/* FIQ EL1h               */
+	vector_entry el1_fiq	/* FIQ EL1h               */
 	vector_entry el1_error_invalid	/* Error EL1h             */
 
 	/* Lower Exception level using AArch64 */

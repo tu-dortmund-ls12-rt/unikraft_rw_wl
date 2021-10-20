@@ -63,6 +63,7 @@ static uint64_t gic_dist_addr, gic_redist_addr;
 static uint64_t gic_dist_size, gic_redist_size;
 
 #define GIC_DIST_REG(r) ((void *)(gic_dist_addr + (r)))
+#define GIC_REDIST_REG(r) ((void *)(gic_redist_addr + (r)))
 #define IRQ_TYPE_MASK 0x0000000f
 
 /**
@@ -129,12 +130,16 @@ static inline void write_gicd8(uint64_t offset, uint8_t val)
 	ioreg_write8(GIC_DIST_REG(offset), val);
 }
 
-static inline void write_gicd32(uint64_t offset, uint32_t val)
+void write_gicd32(uint64_t offset, uint32_t val)
 {
 	ioreg_write32(GIC_DIST_REG(offset), val);
 }
+void write_gicr32(uint64_t offset, uint32_t val)
+{
+	ioreg_write32(GIC_REDIST_REG(offset), val);
+}
 
-static inline uint32_t read_gicd32(uint64_t offset)
+uint32_t read_gicd32(uint64_t offset)
 {
 	return ioreg_read32(GIC_DIST_REG(offset));
 }
@@ -291,6 +296,8 @@ void gic_set_irq_prio(uint32_t irq, uint8_t priority)
 void gic_enable_irq(uint32_t irq)
 {
 	write_gicd32(GICD_ISENABLER(irq), UK_BIT(irq % GICD_I_PER_ISENABLERn));
+	//ALso write the Redistributor //TODO, this is only core loacal
+	write_gicr32(GICR_ISENABLER(irq), UK_BIT(irq % GICR_I_PER_ISENABLERn));
 }
 
 /*

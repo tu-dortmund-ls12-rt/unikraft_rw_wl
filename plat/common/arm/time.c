@@ -137,10 +137,13 @@ void ukplat_time_init(void)
 	if (irq < 0 || irq >= __MAX_IRQ)
 		UK_CRASH("Failed to translate IRQ number, type=%u, hwirq=%u\n",
 			irq_type, hwirq);
+	uk_pr_debug("GT irq number is %d\n", irq);
 
-	rc = ukplat_irq_register(irq, generic_timer_irq_handler, NULL);
+	// rc = ukplat_irq_register(irq, generic_timer_irq_handler, NULL);
 	if (rc < 0)
 		UK_CRASH("Failed to register timer interrupt handler\n");
+
+	gic_set_irq_prio(irq, 0);
 
 	/*
 	 * Mask IRQ before scheduler start working. Otherwise we will get

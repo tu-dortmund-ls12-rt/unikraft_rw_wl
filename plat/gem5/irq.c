@@ -68,6 +68,7 @@ int ukplat_irq_register(unsigned long irq, irq_handler_func_t func, void *arg)
 	ukplat_lcpu_restore_irqf(flags);
 
 	intctrl_clear_irq(irq);
+	
 	return 0;
 }
 

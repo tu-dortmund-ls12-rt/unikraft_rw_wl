@@ -21,5 +21,6 @@ int generic_timer_init(int fdt_timer);
 int generic_timer_irq_handler(void *arg __unused);
 void generic_timer_cpu_block_until(uint64_t until_ns);
 void generic_timer_update_boot_ticks(void);
+void generic_timer_update_compare(uint64_t new_val);
 
 #endif /* __ARM_ARM_TIME_H */
