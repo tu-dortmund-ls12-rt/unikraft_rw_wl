@@ -145,11 +145,9 @@
 	ldr x18, [sp, #__SP_OFFSET]
 	mov sp, x18
 .endif
-	add sp, sp, #__TRAP_STACK_SIZE
-
 	/* Restore x18,x19 */
 	ldp x18, x19, [sp, #16 * 9]
-
+	add sp, sp, #__TRAP_STACK_SIZE
 	eret
 .endm
 
@@ -163,6 +161,7 @@ el1_sync:
 	ENTER_TRAP 1
 	mov x0, sp
 	mrs x1, far_el1
+	mrs x2, par_el1
 	bl trap_el1_sync
 	LEAVE_TRAP 1
 
@@ -196,6 +195,7 @@ name##_invalid:				\
 	mov x1, el;			\
 	mov x2, #(reason);		\
 	mrs x3, far_el1;		\
+	mrs x4, par_el1;		\
 	b   invalid_trap_handler;	\
 ENDPROC(name##_invalid);		\
 

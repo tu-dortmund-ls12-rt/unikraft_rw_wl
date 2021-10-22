@@ -32,7 +32,7 @@ static const char *exception_modes[]= {
 	"Error"
 };
 
-static void dump_registers(struct __regs *regs, uint64_t far)
+static void dump_registers(struct __regs *regs, uint64_t far, uint64_t par)
 {
 	unsigned char idx;
 
@@ -43,6 +43,7 @@ static void dump_registers(struct __regs *regs, uint64_t far)
 	uk_pr_crit("\t LR (x30) : 0x%016lx\n", regs->lr);
 	uk_pr_crit("\t PSTATE   : 0x%016lx\n", regs->spsr_el1);
 	uk_pr_crit("\t FAR_EL1  : 0x%016lx\n", far);
+	uk_pr_crit("\t PAR_EL1  : 0x%016lx\n", par);
 
 	for (idx = 0; idx < 28; idx += 4)
 		uk_pr_crit("\t x%02d ~ x%02d: 0x%016lx 0x%016lx 0x%016lx 0x%016lx\n",
@@ -54,19 +55,30 @@ static void dump_registers(struct __regs *regs, uint64_t far)
 }
 
 void invalid_trap_handler(struct __regs *regs, uint32_t el,
-				uint32_t reason, uint64_t far)
+				uint32_t reason, uint64_t far, uint64_t par)
 {
 	uk_pr_crit("Unikraft: EL%d invalid %s trap caught\n",
 		   el, exception_modes[reason]);
-	dump_registers(regs, far);
+	dump_registers(regs, far, par);
 	ukplat_crash();
 }
 
-void trap_el1_sync(struct __regs *regs, uint64_t far)
+void trap_el1_sync(struct __regs *regs, uint64_t far, uint64_t par)
 {
+	//Check if it was a access flag fault, this may be intended
+	//Check EC field for "data abort with exception level change"
+	if((regs->esr_el1 & (0b111111 << 26)) == (0b100101UL << 26)){
+		//Check DFSC field for "access flag fault level 3"
+		if((regs->esr_el1 & (0b111111 << 0)) == (0b001011 << 0)){
+			extern void uk_lib_rot_writes_acces_trap_handler(unsigned long far);
+			uk_lib_rot_writes_acces_trap_handler(far);
+			return;
+		}
+	}
+
 	uk_pr_crit("Unikraft: EL1 sync trap caught\n");
 
-	dump_registers(regs, far);
+	dump_registers(regs, far, par);
 	ukplat_crash();
 }
 
