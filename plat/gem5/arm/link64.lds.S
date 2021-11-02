@@ -65,6 +65,7 @@ SECTIONS {
 		*(.gem5_arm_bootcode)
 		*(.text)
 		*(.text.*)
+		*(.apptext)
 	}
 
 	. = ALIGN(__PAGE_SIZE);
@@ -92,6 +93,7 @@ SECTIONS {
 	{
 		*(.rodata)
 		*(.rodata.*)
+		*(.approdata)
 	}
 
 
@@ -124,6 +126,7 @@ SECTIONS {
 	{
 		*(.data)
 		*(.data.*)
+		*(.appdata)
 	}
 	_edata = .;
 	. = ALIGN(__PAGE_SIZE);
@@ -135,12 +138,18 @@ SECTIONS {
 		*(.bss)
 		*(.bss.*)
 		*(COMMON)
+		*(.appbss)
 		. = ALIGN(__PAGE_SIZE);
 	/*
 	 * TODO
 	 * We can define the stack and page-table here, and free them once
 	 * the boot is done.
 	 */
+	}
+
+	.appmisc : {
+		*(.appstack)
+		*(.appheap)
 	}
 
 	_end = .;

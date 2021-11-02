@@ -96,7 +96,6 @@ void _ukplat_irq_handle(unsigned long irq)
 			 * that work.
 			 */
 			__uk_test_and_set_bit(0, &sched_have_pending_events);
-
 		if (h->func(h->arg) == 1)
 			goto exit_ack;
 	}

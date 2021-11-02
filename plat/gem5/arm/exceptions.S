@@ -104,6 +104,10 @@
 	/* Save stack pointer for lower level exception */
 	mrs x18, sp_el0
 	str x18, [sp, #__SP_EL0_OFFSET]
+.else
+	/* Save stack pointer for lower level exception */
+	mov x18, sp
+	str x18, [sp, #__SP_OFFSET]
 .endif
 
 .endm
@@ -139,13 +143,12 @@
 .if \el == 0
 	/* Restore stack pointer for exception from EL0 */
 	ldr x18, [sp, #__SP_EL0_OFFSET]
-	msr sp_el0, x18
+	/*msr sp_el0, x18*/
 .else
 	/* Restore stack pointer for exception from EL1 */
 	ldr x18, [sp, #__SP_OFFSET]
-	mov sp, x18
+	/*mov sp, x18*/
 .endif
-	/* Restore x18,x19 */
 	ldp x18, x19, [sp, #16 * 9]
 	add sp, sp, #__TRAP_STACK_SIZE
 	eret
