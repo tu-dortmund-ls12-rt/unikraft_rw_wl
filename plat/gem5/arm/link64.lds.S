@@ -127,6 +127,8 @@ SECTIONS {
 		*(.data)
 		*(.data.*)
 		*(.appdata)
+		*(.appbss)
+		*(.appheap)
 	}
 	_edata = .;
 	. = ALIGN(__PAGE_SIZE);
@@ -138,7 +140,6 @@ SECTIONS {
 		*(.bss)
 		*(.bss.*)
 		*(COMMON)
-		*(.appbss)
 		. = ALIGN(__PAGE_SIZE);
 	/*
 	 * TODO
@@ -149,7 +150,6 @@ SECTIONS {
 
 	.appmisc : {
 		*(.appstack)
-		*(.appheap)
 	}
 
 	_end = .;
