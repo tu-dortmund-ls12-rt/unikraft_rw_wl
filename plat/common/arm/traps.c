@@ -84,5 +84,6 @@ void trap_el1_sync(struct __regs *regs, uint64_t far, uint64_t par)
 
 void trap_el1_irq(void)
 {
+	printf("IRQ\n");
 	gic_handle_irq();
 }

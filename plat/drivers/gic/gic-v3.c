@@ -297,7 +297,9 @@ void gic_enable_irq(uint32_t irq)
 {
 	write_gicd32(GICD_ISENABLER(irq), UK_BIT(irq % GICD_I_PER_ISENABLERn));
 	//ALso write the Redistributor //TODO, this is only core loacal
-	write_gicr32(GICR_ISENABLER(irq), UK_BIT(irq % GICR_I_PER_ISENABLERn));
+	if(irq < 32){
+		write_gicr32(GICR_ISENABLER(irq), UK_BIT(irq % GICR_I_PER_ISENABLERn));
+	}
 }
 
 /*
@@ -388,6 +390,7 @@ void gic_handle_irq(void)
 		irq = stat & GICC_IAR_INTID_MASK;
 
 		uk_pr_info("Unikraft: EL1 IRQ#%d trap caught\n", irq);
+		printf("Unikraft: EL1 IRQ#%d trap caught\n", irq);
 
 		/*
 		 * TODO: Handle IPI&SGI interrupts here
